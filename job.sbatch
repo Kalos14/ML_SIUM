@@ -1,7 +1,7 @@
 #!/bin/bash
 #SBATCH --job-name=fin_407-notebook
 #SBATCH --partition=fin_407
-#SBATCH --account=fin_407
+#SBATCH --account=fin/407
 #SBATCH --gres=gpu:1
 #SBATCH --cpus-per-task=10
 #SBATCH --time=0:02:00

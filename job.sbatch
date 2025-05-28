@@ -10,6 +10,6 @@
 
 module load gcc python
 # Load your virtual environment or conda environment if needed
-source /home/calandrino/venv/bin/activate
+source /home/$USER/venv/bin/activate
 
-srun python /home/calandrino/prova.py
+srun python /home/$USER/prova.py

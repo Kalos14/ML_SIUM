@@ -1,5 +1,5 @@
 #!/bin/bash
-#SBATCH --job-name=fin/407-notebook
+#SBATCH --job-name=fin-407-notebook
 #SBATCH --qos=fin-407
 #SBATCH --account=fin-407
 #SBATCH --gres=gpu:1
@@ -12,4 +12,4 @@ module load gcc python
 # Load your virtual environment or conda environment if needed
 source /home/$USER/venv/bin/activate
 
-srun python /home/$USER/prova.py
+srun python /home/$USER/ML_SIUM/inspect_data.py

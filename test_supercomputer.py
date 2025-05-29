@@ -239,22 +239,22 @@ equally_weighted = np.asarray(equally_weighted)[:len(aligned_dates)]
 equally_cum_return = np.cumsum(equally_weighted)
 
 
-plt.figure()
-plt.plot(dates_to_save, portfolio_cum_return, label="Portfolio")
+plt.figure(figsize=(10, 5))
+plt.plot(dates_to_save, portfolio_cum_return, label="Transformer Portfolio")
 plt.plot(dates_to_save, SP_cum_return, label="S&P 500", linestyle="--")
 plt.plot(dates_to_save, equally_cum_return, label="Equally Weighted", linestyle=":")
 
-# Formatting
-plt.gca().xaxis.set_major_locator(mdates.YearLocator())
+plt.gca().xaxis.set_major_locator(mdates.YearLocator(base=10))
 plt.gca().xaxis.set_major_formatter(mdates.DateFormatter('%Y'))
 
-plt.title(f"Cum Ret: epochs = {epoch}, H = {H} , K = {K}, lr = {lr}, z = {ridge_penalty}")
+plt.title(f"Cum Ret: epochs = {epoch}, H = {H}, K = {K}, lr = {lr}, z = {ridge_penalty}")
 plt.xlabel("Time")
 plt.ylabel("Cumulative Return")
 plt.grid(True)
 plt.legend()
-plt.savefig(os.path.join(output_dir, "myplotSIUM.png"))
+plt.tight_layout()
 
+plt.savefig(os.path.join(output_dir, "myplotSIUM.png"))
 plt.close()
 
 

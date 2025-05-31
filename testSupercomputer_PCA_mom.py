@@ -24,7 +24,7 @@ import os
 output_dir = "project_results_PCA_mom"
 os.makedirs(output_dir, exist_ok=True)
 
-
+#prova
 
 def set_seed(seed=42):
     random.seed(seed)  # Python
@@ -278,7 +278,3 @@ plt.close()
 
 end_time = time.time()
 print(f"\nExecution time: {(end_time - start_time)/60:.2f} minutes")
-
-
-
-

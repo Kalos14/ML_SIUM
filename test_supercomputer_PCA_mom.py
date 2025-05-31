@@ -38,14 +38,16 @@ set_seed(42)
 
 # In[2]:
 
+dataset_path = f"/home/{os.environ['USER']}/usa_131_per_size_ranks_False.pkl"
+stock_data = pd.read_pickle(dataset_path)
 
-stock_data = pd.read_pickle("./usa_131_per_size_ranks_False.pkl")
-#stock_data = pd.read_pickle("./our_version_121charach_norm.pkl")
 stock_data = stock_data[stock_data["size_grp"] == "micro"]
-#stock_data = stock_data[stock_data["id"]%6 == 0]
 
-SP_benchmark = pd.read_csv("SandP benchmark.csv")
+benchmark_path = f"/home/{os.environ['USER']}/SandP benchmark.csv"
+
+SP_benchmark = pd.read_csv(benchmark_path)
 SP_benchmark["caldt"] = pd.to_datetime(SP_benchmark["caldt"])
+
 
 # ## defining transformer structure
 # 

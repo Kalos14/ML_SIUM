@@ -135,8 +135,8 @@ stock_data_pca = pd.concat([pcs_df, X_non_num], axis=1)
 
 
 window = 60
-epoch = 2
-K = 5
+epoch = 10
+K = 10
 D = stock_data_pca.shape[1] - len(columns_to_drop_in_x)
 H = 1
 dF = 256
@@ -148,8 +148,8 @@ momentum_portfolio = []
 equally_weighted = []
 portfolio_ret = []
 dates_to_save = []
-first_t = 100
-last_T =  first_t + 150#len(months_list)-2 
+first_t = 61
+last_T =  len(months_list)-2 #first_t + 150
 for t in range(first_t, last_T):
     model = NonlinearPortfolioForward(D=D, K=K, H=H, dF=dF).to(device)
     optimizer = optim.Adam(model.parameters(), lr=lr, weight_decay=1e-5)
@@ -207,7 +207,7 @@ for t in range(first_t, last_T):
     mom_ret = factor_ret(stock_data[stock_data["date"] == months_list[t]]["ret_12_1"], month_data["r_1"])
     momentum_portfolio.append(mom_ret)
     #equally_weighted.append(R_t_plus_one.mean().item())
-    print(predicted,  mom_ret) #R_t_plus_one.mean().item(),
+    #print(predicted,  mom_ret) #R_t_plus_one.mean().item(),
 
 
 

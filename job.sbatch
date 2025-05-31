@@ -4,7 +4,7 @@
 #SBATCH --account=fin-407
 #SBATCH --gres=gpu:1
 #SBATCH --cpus-per-task=10
-#SBATCH --time=4:10:00
+#SBATCH --time=0:30:00
 #SBATCH --mem=32G
 #SBATCH --output=fin-407-jupyter-%j.out
 

@@ -24,7 +24,7 @@ import os
 output_dir = "project_results_PCA_mom"
 os.makedirs(output_dir, exist_ok=True)
 
-
+print("you are running the code about PCA against momentum")
 
 def set_seed(seed=42):
     random.seed(seed)  # Python

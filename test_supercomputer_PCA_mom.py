@@ -41,7 +41,7 @@ set_seed(42)
 dataset_path = f"/home/{os.environ['USER']}/usa_131_per_size_ranks_False.pkl"
 stock_data = pd.read_pickle(dataset_path)
 
-stock_data = stock_data[stock_data["size_grp"] == "micro"]
+stock_data = stock_data[stock_data["size_grp"] == "mega"]
 
 benchmark_path = f"/home/{os.environ['USER']}/SandP benchmark.csv"
 

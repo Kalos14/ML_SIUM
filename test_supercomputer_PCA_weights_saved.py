@@ -288,7 +288,7 @@ plt.plot(dates_to_save, SP_cum_return, label="S&P 500", linestyle="--")
 plt.plot(dates_to_save, momentum, label="Momentum (-12 -1)", linestyle=":")
 
 # Formatting
-plt.gca().xaxis.set_major_locator(mdates.YearLocator())
+plt.gca().xaxis.set_major_locator(mdates.YearLocator(base=10))
 plt.gca().xaxis.set_major_formatter(mdates.DateFormatter('%Y'))
 
 plt.title(f"Cum Ret PCA: epochs = {epoch}, H = {H} , K = {K}, lr = {lr}, z = {ridge_penalty}, nPCA = {n_pca}")

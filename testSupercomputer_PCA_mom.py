@@ -146,8 +146,8 @@ momentum_portfolio = []
 equally_weighted = []
 portfolio_ret = []
 dates_to_save = []
-first_t = 300
-last_T =  first_t + 5#len(months_list)-2 #
+first_t = 61
+last_T =  len(months_list)-2 #first_t + 5
 for t in range(first_t, last_T):
     model = NonlinearPortfolioForward(D=D, K=K, H=H, dF=dF).to(device)
     optimizer = optim.Adam(model.parameters(), lr=lr, weight_decay=1e-5)

@@ -5,7 +5,6 @@
 
 
 import numpy as np
-from sklearn.decomposition import PCA
 from pathlib import Path
 from scipy.stats import rankdata  # Make sure this is included!
 import math

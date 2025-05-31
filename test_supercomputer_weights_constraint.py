@@ -128,18 +128,13 @@ columns_to_drop_in_x = ["size_grp", "date", "r_1", "id"]
 
 
 X_non_num = stock_data[columns_to_drop_in_x]
-n_pca = 36
-pca = PCA(n_components=n_pca)
-X_pcs = pca.fit_transform(stock_data.drop(columns = columns_to_drop_in_x))
-pcs_df = pd.DataFrame(X_pcs, index=stock_data.index, columns=[f"PC{i+1}" for i in range(n_pca)])
 
-stock_data_pca = pd.concat([pcs_df, X_non_num], axis=1)
 
 
 window = 60
-epoch = 2
-K = 5
-D = stock_data_pca.shape[1] - len(columns_to_drop_in_x)
+epoch = 10
+K = 10
+D = stock_data.shape[1] - len(columns_to_drop_in_x)
 H = 1
 dF = 256
 ridge_penalty = 10
@@ -162,8 +157,8 @@ momentum_portfolio = []
 equally_weighted = []
 portfolio_ret = []
 dates_to_save = []
-first_t = 100
-last_T =  first_t + 150 #len(months_list)-2 
+first_t = 61
+last_T =  len(months_list)-2 #first_t + 10
 for t in range(first_t, last_T):
     model = NonlinearPortfolioForward(D=D, K=K, H=H, dF=dF).to(device)
     optimizer = optim.Adam(model.parameters(), lr=lr, weight_decay=1e-5)
@@ -173,7 +168,7 @@ for t in range(first_t, last_T):
     print(months_list[t])
     for e in range(epoch):
         for month in months_list[t - window:t]:  # this loop iterates until t-1
-            month_data = stock_data_pca[stock_data_pca["date"] == month]
+            month_data = stock_data[stock_data["date"] == month]
 
             X_t = month_data.drop(columns=columns_to_drop_in_x)
 
@@ -200,7 +195,7 @@ for t in range(first_t, last_T):
             optimizer.step()
 
         #print(f"  month {month}  loss={loss.item():.6f} return={w_t @ R_t_plus_one}")
-    month_data = stock_data_pca[stock_data_pca["date"] == months_list[t]]
+    month_data = stock_data[stock_data["date"] == months_list[t]]
 
 
     X_t = month_data.drop(columns=columns_to_drop_in_x)

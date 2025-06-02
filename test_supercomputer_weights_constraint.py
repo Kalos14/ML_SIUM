@@ -23,7 +23,7 @@ import os
 output_dir = Path("project_results_PCA_mom")
 output_dir.mkdir(exist_ok=True)
 
-print("you are running the code about PCA against momentum")
+print("you are running the code about weights constraint")
 
 def set_seed(seed=42):
     random.seed(seed)  # Python
@@ -136,7 +136,7 @@ K = 10
 D = stock_data.shape[1] - len(columns_to_drop_in_x)
 H = 1
 dF = 256
-ridge_penalty = 10
+ridge_penalty = 1
 lr = 1e-4
 device = "cuda" if torch.cuda.is_available() else "cpu"
 
@@ -193,7 +193,6 @@ for t in range(first_t, last_T):
 
             optimizer.step()
 
-        #print(f"  month {month}  loss={loss.item():.6f} return={w_t @ R_t_plus_one}")
     month_data = stock_data[stock_data["date"] == months_list[t]]
 
 

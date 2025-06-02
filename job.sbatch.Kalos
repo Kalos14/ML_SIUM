@@ -4,8 +4,8 @@
 #SBATCH --account=fin-407
 #SBATCH --gres=gpu:1
 #SBATCH --cpus-per-task=10
-#SBATCH --time=03:00:00
-#SBATCH --mem=32G
+#SBATCH --time=04:00:00
+#SBATCH --mem=64G
 #SBATCH --output=fin-407-jupyter-%j.out
 
 module load gcc python

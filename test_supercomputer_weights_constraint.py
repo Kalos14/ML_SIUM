@@ -234,10 +234,13 @@ for t in range(first_t, last_T):
 data = {
     "Date": dates_to_save,
     "Return": portfolio_ret,
-    "Momentum": momentum_portfolio[:len(dates_to_save)]
+#    "Momentum": momentum_portfolio[:len(dates_to_save)]
 }
 
 # Step 2: Convert to DataFrame
+print("len(dates_to_save):", len(dates_to_save))
+print("len(portfolio_ret):", len(portfolio_ret))
+
 lele = pd.DataFrame(data)
 
 # Step 3: Export to CSV

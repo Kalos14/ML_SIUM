@@ -20,7 +20,7 @@ start_time = time.time()
 import datetime as dt
 import os
 ### SUPERCOMPUTER ###
-output_dir = Path("project_results_PCA_mom")
+output_dir = Path("project_results_constrained")
 output_dir.mkdir(exist_ok=True)
 
 print("you are running the code about weights constraint")
@@ -242,7 +242,7 @@ lele = pd.DataFrame(data)
 
 # Step 3: Export to CSV
 
-csv_path = output_dir / "PCAportfolio_vs_momentum.csv"
+csv_path = output_dir / "short_constrain.csv"
 lele.to_csv(csv_path, index=False)
 
 torch.save(run_artifacts, output_dir / "artifacts_run.pt")
@@ -275,7 +275,7 @@ momentum =  np.asarray(momentum_portfolio)[:len(aligned_dates)]
 momentum = np.cumsum(momentum)
 
 plt.figure()
-plt.plot(dates_to_save, portfolio_cum_return, label="PCA Portfolio")
+plt.plot(dates_to_save, portfolio_cum_return, label="constrained Portfolio")
 plt.plot(dates_to_save, SP_cum_return, label="S&P 500", linestyle="--")
 #plt.plot(dates_to_save, equally_cum_return, label="Equally Weighted", linestyle=":")
 plt.plot(dates_to_save, momentum, label="Momentum (-12 -1)", linestyle=":")
@@ -284,13 +284,13 @@ plt.plot(dates_to_save, momentum, label="Momentum (-12 -1)", linestyle=":")
 plt.gca().xaxis.set_major_locator(mdates.YearLocator(base=10))
 plt.gca().xaxis.set_major_formatter(mdates.DateFormatter('%Y'))
 
-plt.title(f"Cum Ret PCA: epochs = {epoch}, H = {H} , K = {K}, lr = {lr}, z = {ridge_penalty}, nPCA = {n_pca}")
+plt.title(f"Cum Ret constrained: epochs = {epoch}, H = {H} , K = {K}, lr = {lr}, z = {ridge_penalty}")
 plt.xlabel("Time")
 plt.ylabel("Cumulative Return")
 plt.grid(True)
 plt.legend()
 plt.tight_layout()
-plt.savefig(os.path.join(output_dir, "PCA_vs_mom.png"))
+plt.savefig(os.path.join(output_dir, "constrained_plot.png"))
 plt.close()
 
 #plt.show()

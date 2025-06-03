@@ -294,16 +294,6 @@ plt.savefig(os.path.join(output_dir, "constrained_plot.png"))
 plt.close()
 
 
-r_tM = np.array(portfolio_ret)
-
-mean_r = r_tM.mean()           # E_os
-std_r  = r_tM.std(ddof=1)      # σ_os 
-
-sharpe_ratio = (mean_r / std_r) * np.sqrt(12)
-
-#plt.show()
-print(f"\nWe obtained a SR of: {sharpe_Ratio:.3f}")
-
 end_time = time.time()
 print(f"\nExecution time: {(end_time - start_time)/60:.2f} minutes")
 

@@ -277,6 +277,12 @@ portfolio_cum_return = np.cumsum(np.asarray(portfolio_ret)[:len(aligned_dates)])
 #momentum =  np.asarray(momentum_portfolio)[:len(aligned_dates)]
 # momentum = np.cumsum(momentum)
 
+#Sharpe Ratio
+ret = np.array(lele["Return"].values)
+mean = ret.mean()
+std = ret.std(ddof=1)
+sharpe_ratio = np.sqrt(12) *mean / std # Annualized Sharpe Ratio
+
 plt.figure()
 plt.plot(dates_to_save, portfolio_cum_return, label="constrained Portfolio")
 plt.plot(dates_to_save, SP_cum_return, label="S&P 500", linestyle="--")
@@ -287,7 +293,7 @@ plt.plot(dates_to_save, SP_cum_return, label="S&P 500", linestyle="--")
 plt.gca().xaxis.set_major_locator(mdates.YearLocator(base=10))
 plt.gca().xaxis.set_major_formatter(mdates.DateFormatter('%Y'))
 
-plt.title(f"Cum Ret constrained: epochs = {epoch}, H = {H} , K = {K}, lr = {lr}, z = {ridge_penalty}")
+plt.title(f"Cum Ret constrained: epochs = {epoch}, H = {H} , K = {K}, lr = {lr}, z = {ridge_penalty}, Sharpe Ratio = {sharpe_ratio:.2f}")
 plt.xlabel("Time")
 plt.ylabel("Cumulative Return")
 plt.grid(True)

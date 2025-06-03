@@ -140,17 +140,17 @@ ridge_penalty = 10
 lr = 1e-5
 device = "cuda" if torch.cuda.is_available() else "cpu"
 
-run_artifacts = {
-    "hyperparams": dict(window=window, epoch=epoch, K=K, D=D, H=H,
-                        dF=dF, ridge_penalty=ridge_penalty, lr=lr),
-    "dates":             [],   # t+1
-    "state_dicts":       [],   # parameters trasformer
-    "X_t":               [],   # feature tensor
-    "R_t_plus_one":      [],   # OOS returns
-    "predicted_ret":     [],   # returns predicted by the model
-    "loss_history":            [],    # loss 
-    "portfolio_weights": [],  # portfolio weights
-}
+# run_artifacts = {
+#     "hyperparams": dict(window=window, epoch=epoch, K=K, D=D, H=H,
+#                         dF=dF, ridge_penalty=ridge_penalty, lr=lr),
+#     "dates":             [],   # t+1
+#     "state_dicts":       [],   # parameters trasformer
+#     "X_t":               [],   # feature tensor
+#     "R_t_plus_one":      [],   # OOS returns
+#     "predicted_ret":     [],   # returns predicted by the model
+#     "loss_history":            [],    # loss 
+#     "portfolio_weights": [],  # portfolio weights
+# }
 
 momentum_portfolio = []
 equally_weighted = []
@@ -248,7 +248,7 @@ lele = pd.DataFrame(data)
 csv_path = output_dir / "short_constrain.csv"
 lele.to_csv(csv_path, index=False)
 
-torch.save(run_artifacts, output_dir / "artifacts_run.pt")
+# torch.save(run_artifacts, output_dir / "artifacts_run.pt")
 
 import matplotlib.pyplot as plt
 import matplotlib.dates as mdates

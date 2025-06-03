@@ -212,17 +212,17 @@ for t in range(first_t, last_T):
     dates_to_save.append(months_list[t+1])
 
 
-    run_artifacts["dates"].append(months_list[t+1])
-    run_artifacts["state_dicts"].append(model.state_dict())
-    run_artifacts["X_t"].append(X_t_tensor.cpu())          
-    run_artifacts["R_t_plus_one"].append(R_t_plus_one.cpu())
-    run_artifacts["predicted_ret"].append(predicted)
-    run_artifacts["loss_history"].append(float(np.mean(losses)))
-    run_artifacts["portfolio_weights"].append(w_t.cpu())
+#    run_artifacts["dates"].append(months_list[t+1])
+#    run_artifacts["state_dicts"].append(model.state_dict())
+#    run_artifacts["X_t"].append(X_t_tensor.cpu())          
+#    run_artifacts["R_t_plus_one"].append(R_t_plus_one.cpu())
+#    run_artifacts["predicted_ret"].append(predicted)
+#    run_artifacts["loss_history"].append(float(np.mean(losses)))
+#    run_artifacts["portfolio_weights"].append(w_t.cpu())
 
     ### BENCHMARKS ###
-    mom_ret = factor_ret(stock_data[stock_data["date"] == months_list[t]]["ret_12_1"], month_data["r_1"])
-    momentum_portfolio.append(mom_ret)
+#    mom_ret = factor_ret(stock_data[stock_data["date"] == months_list[t]]["ret_12_1"], month_data["r_1"])
+#    momentum_portfolio.append(mom_ret)
     #equally_weighted.append(R_t_plus_one.mean().item())
 
 
@@ -271,14 +271,14 @@ portfolio_cum_return = np.cumsum(np.asarray(portfolio_ret)[:len(aligned_dates)])
 #equally_weighted = np.asarray(equally_weighted)[:len(aligned_dates)]
 #equally_cum_return = np.cumsum(equally_weighted)
 
-momentum =  np.asarray(momentum_portfolio)[:len(aligned_dates)]
-momentum = np.cumsum(momentum)
+#momentum =  np.asarray(momentum_portfolio)[:len(aligned_dates)]
+# momentum = np.cumsum(momentum)
 
 plt.figure()
 plt.plot(dates_to_save, portfolio_cum_return, label="constrained Portfolio")
 plt.plot(dates_to_save, SP_cum_return, label="S&P 500", linestyle="--")
 #plt.plot(dates_to_save, equally_cum_return, label="Equally Weighted", linestyle=":")
-plt.plot(dates_to_save, momentum, label="Momentum (-12 -1)", linestyle=":")
+#plt.plot(dates_to_save, momentum, label="Momentum (-12 -1)", linestyle=":")
 
 # Formatting
 plt.gca().xaxis.set_major_locator(mdates.YearLocator(base=10))
@@ -293,7 +293,16 @@ plt.tight_layout()
 plt.savefig(os.path.join(output_dir, "constrained_plot.png"))
 plt.close()
 
+
+r_tM = np.array(portfolio_ret)
+
+mean_r = r_tM.mean()           # E_os
+std_r  = r_tM.std(ddof=1)      # σ_os 
+
+sharpe_ratio = (mean_r / std_r) * np.sqrt(12)
+
 #plt.show()
+print(f"\nWe obtained a SR of: {sharpe_Ratio:.3f}")
 
 end_time = time.time()
 print(f"\nExecution time: {(end_time - start_time)/60:.2f} minutes")

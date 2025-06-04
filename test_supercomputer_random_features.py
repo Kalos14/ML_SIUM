@@ -154,6 +154,7 @@ G = 10
 columns_to_drop_in_x = ["size_grp", "date", "r_1", "id"]
 D = stock_data.shape[1] - len(columns_to_drop_in_x)
 months_list = stock_data["date"].unique()
+months_list = [m for m in months_list if m>= pd.Timestamp(year=1994, month=12, day=1)]
 
 S = pd.DataFrame()
 i = 0
@@ -175,23 +176,22 @@ print(S.shape, flush = True)
 # ## Training loop -------
 
 
-months_list = stock_data["date"].unique()
 columns_to_drop_in_x = ["size_grp", "date", "r_1", "id"]
 window = 60
-epoch = 10
+epoch = 15
 K = 2
 D = P
 H = 8
 dF = 256
-ridge_penalty = 10
-lr = 1e-4
+ridge_penalty = 50
+lr = 1e-5
 device = "cuda" if torch.cuda.is_available() else "cpu"
 
 equally_weighted = []
 portfolio_ret = []
 dates_to_save = []
 first_t = 61
-last_T =  first_t + 78 # len(months_list) - 2
+last_T =  len(months_list) - 2 #first_t + 78
 for t in range(first_t, last_T):
     model = NonlinearPortfolioForward(D=D, K=K, H=H, dF=dF).to(device)
     optimizer = optim.Adam(model.parameters(), lr=lr, weight_decay=1e-5)
@@ -245,7 +245,7 @@ for t in range(first_t, last_T):
     portfolio_ret.append(predicted)
     dates_to_save.append(months_list[t + 1])
     equally_weighted.append(R_t_plus_one.mean().item())
-    print((months_list[t], predicted), flush = True)
+    print((months_list[t], predicted, R_t_plus_one.mean().item() ), flush = True)
 
 # In[ ]:
 

@@ -185,8 +185,6 @@ for t in range(first_t, last_T):
     returns = []
     for e in range(epoch):
         for month in months_list[t - window:t]:  # this loop iterates until t-1
-            if e == 0:
-                print(month)
             month_data = S[S["date"] == month]
 
 
@@ -215,6 +213,7 @@ for t in range(first_t, last_T):
             optimizer.step()
 
         # print(f"  month {month}  loss={loss.item():.6f} return={w_t @ R_t_plus_one}")
+    print(month_list[t])
     month_data = S[S["date"] == months_list[t]]
 
     X_t = month_data.drop(columns=columns_to_drop_in_x)

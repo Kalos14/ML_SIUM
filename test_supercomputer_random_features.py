@@ -143,9 +143,9 @@ months_list = stock_data["date"].unique()
 
 S = pd.DataFrame()
 i = 0
-print("running random featuresssss")
+print("running random featuresssss", flush = True)
 for month in months_list[:140]:
-    print(month)
+    print(month, flush = True)
     X_t = stock_data[stock_data["date"] == month].drop(columns=columns_to_drop_in_x)
     S_t = features_maker(X_t, G, P)
     non_num = stock_data[stock_data["date"] == month][columns_to_drop_in_x].reset_index(drop=True)
@@ -154,7 +154,7 @@ for month in months_list[:140]:
     S = pd.concat([S, S_t], axis=0)
 
 
-print(S.shape)
+print(S.shape, flush = True)
 
 
 
@@ -215,7 +215,7 @@ for t in range(first_t, last_T):
             optimizer.step()
 
         # print(f"  month {month}  loss={loss.item():.6f} return={w_t @ R_t_plus_one}")
-    print(months_list[t])
+    print(months_list[t], flush = True)
     month_data = S[S["date"] == months_list[t]]
 
     X_t = month_data.drop(columns=columns_to_drop_in_x)

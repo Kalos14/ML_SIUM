@@ -16,8 +16,8 @@ import datetime as dt
 import os
 
 ### SUPERCOMPUTER ###
-# output_dir = "project_results"
-# os.makedirs(output_dir, exist_ok=True)
+output_dir = "project_results_ran_feat"
+os.makedirs(output_dir, exist_ok=True)
 
 
 def set_seed(seed=42):
@@ -32,23 +32,16 @@ set_seed(42)
 
 # In[2]:
 
-# dataset_path = f"/home/{os.environ['USER']}/usa_131_per_size_ranks_False.pkl"
-# stock_data = pd.read_pickle(dataset_path)
-#
-# stock_data = stock_data[stock_data["size_grp"] == "micro"]
-#
-# benchmark_path = f"/home/{os.environ['USER']}/SandP benchmark.csv"
-#
-# SP_benchmark = pd.read_csv(benchmark_path)
-# SP_benchmark["caldt"] = pd.to_datetime(SP_benchmark["caldt"])
+dataset_path = f"/home/{os.environ['USER']}/usa_131_per_size_ranks_False.pkl"
+stock_data = pd.read_pickle(dataset_path)
 
-stock_data = pd.read_pickle("./usa_131_per_size_ranks_False.pkl")
-#stock_data = pd.read_pickle("./our_version_121charach_norm.pkl")
 stock_data = stock_data[stock_data["size_grp"] == "micro"]
+#stock_data = stock_data[stock_data["id"]%6 == 0]
 
-SP_benchmark = pd.read_csv("SandP benchmark.csv")
+benchmark_path = f"/home/{os.environ['USER']}/SandP benchmark.csv"
+
+SP_benchmark = pd.read_csv(benchmark_path)
 SP_benchmark["caldt"] = pd.to_datetime(SP_benchmark["caldt"])
-
 
 #
 
@@ -142,7 +135,7 @@ def features_maker(X, G, P):  # P should be divisible by 2G
 
 
 
-P = 2500
+P = 2000
 G = 10
 columns_to_drop_in_x = ["size_grp", "date", "r_1", "id"]
 D = stock_data.shape[1] - len(columns_to_drop_in_x)
@@ -150,7 +143,7 @@ months_list = stock_data["date"].unique()
 
 S = pd.DataFrame()
 i = 0
-for month in months_list[70:140]:
+for month in months_list[:140]:
     X_t = stock_data[stock_data["date"] == month].drop(columns=columns_to_drop_in_x)
     S_t = features_maker(X_t, G, P)
     non_num = stock_data[stock_data["date"] == month][columns_to_drop_in_x].reset_index(drop=True)
@@ -170,20 +163,20 @@ print(S.shape)
 months_list = stock_data["date"].unique()
 columns_to_drop_in_x = ["size_grp", "date", "r_1", "id"]
 window = 60
-epoch = 2
+epoch = 5
 K = 10
 D = P
 H = 1
 dF = 256
-ridge_penalty = 100
+ridge_penalty = 10
 lr = 1e-4
 device = "cuda" if torch.cuda.is_available() else "cpu"
 
 equally_weighted = []
 portfolio_ret = []
 dates_to_save = []
-first_t = 131
-last_T =  first_t + 10# len(months_list) - 2
+first_t = 61
+last_T =  first_t + 78 # len(months_list) - 2
 for t in range(first_t, last_T):
     model = NonlinearPortfolioForward(D=D, K=K, H=H, dF=dF).to(device)
     optimizer = optim.Adam(model.parameters(), lr=lr, weight_decay=1e-5)
@@ -191,8 +184,9 @@ for t in range(first_t, last_T):
     losses = []
     returns = []
     for e in range(epoch):
-        print(e)
         for month in months_list[t - window:t]:  # this loop iterates until t-1
+            if e == 0:
+                print(month)
             month_data = S[S["date"] == month]
 
 
@@ -239,25 +233,22 @@ for t in range(first_t, last_T):
     dates_to_save.append(months_list[t + 1])
     equally_weighted.append(R_t_plus_one.mean().item())
 
-    print(predicted, R_t_plus_one.mean().item() )
-
 # In[ ]:
 
 
-# Step 1: Create a dictionary
 data = {
     "Date": dates_to_save,
     "Return": portfolio_ret
 }
 
 # Step 2: Convert to DataFrame
-# lele = pd.DataFrame(data)
-#
-# # Step 3: Export to CSV
-#
-# csv_path = os.path.join(output_dir, "lele_DF.csv")
-#
-# lele.to_csv(csv_path, index=False)
+lele = pd.DataFrame(data)
+
+# Step 3: Export to CSV
+
+csv_path = os.path.join(output_dir, "lele_DF_ranfeat.csv")
+
+lele.to_csv(csv_path, index=False)
 # In[22]:
 
 
@@ -300,6 +291,5 @@ plt.grid(True)
 plt.legend()
 plt.tight_layout()
 
-#plt.savefig(os.path.join(output_dir, "myplotSIUM.png"))
-#plt.close()
-plt.show()
+plt.savefig(os.path.join(output_dir, "myplotSIUM.png"))
+plt.close()

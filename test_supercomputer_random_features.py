@@ -135,8 +135,8 @@ def features_maker(X, G, P):  # P should be divisible by 2G
 
 
 
-P = 2000
-G = 10
+P = 2500
+G = 5
 columns_to_drop_in_x = ["size_grp", "date", "r_1", "id"]
 D = stock_data.shape[1] - len(columns_to_drop_in_x)
 months_list = stock_data["date"].unique()
@@ -163,10 +163,10 @@ print(S.shape)
 months_list = stock_data["date"].unique()
 columns_to_drop_in_x = ["size_grp", "date", "r_1", "id"]
 window = 60
-epoch = 5
+epoch = 8
 K = 10
 D = P
-H = 1
+H = 4
 dF = 256
 ridge_penalty = 10
 lr = 1e-4
@@ -283,7 +283,7 @@ plt.plot(dates_to_save, equally_cum_return, label="Equally Weighted", linestyle=
 plt.gca().xaxis.set_major_locator(mdates.YearLocator(base=10))
 plt.gca().xaxis.set_major_formatter(mdates.DateFormatter('%Y'))
 
-plt.title(f"Cum Ret: epochs = {epoch}, H = {H}, K = {K}, lr = {lr}, z = {ridge_penalty}")
+plt.title(f"Cum Ret: epochs = {epoch}, H = {H}, K = {K}, lr = {lr}, z = {ridge_penalty}, P = {P}, G = {G}")
 plt.xlabel("Time")
 plt.ylabel("Cumulative Return")
 plt.grid(True)

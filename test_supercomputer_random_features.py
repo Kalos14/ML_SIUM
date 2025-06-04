@@ -133,10 +133,24 @@ def features_maker(X, G, P):  # P should be divisible by 2G
 
     return S
 
+def features_maker_prof(X,G,P):
+    d = X.shape[1]
+    S_hat_list = []
+    for g in range(G):
+        W_g = np.sqrt(2) * np.random.randn(d, P//(2*G)) / np.sqrt(d)
+        XWg = X @ W_g  # shape: [N, P // (2G)]
+
+        cos_part = np.sqrt(2)*np.cos(XWg)
+        sin_part = np.sqrt(2)*np.sin(XWg)
+
+        S_hat_g = np.concatenate([cos_part, sin_part], axis=1)  # shape: [N, P // G]
+        S_hat_list.append(S_hat_g)
+    S_hat = np.concatenate(S_hat_list, axis=1)
+    return pd.DataFrame(S_hat)
 
 
 P = 2500
-G = 5
+G = 10
 columns_to_drop_in_x = ["size_grp", "date", "r_1", "id"]
 D = stock_data.shape[1] - len(columns_to_drop_in_x)
 months_list = stock_data["date"].unique()
@@ -145,9 +159,8 @@ S = pd.DataFrame()
 i = 0
 print("running random featuresssss", flush = True)
 for month in months_list[:140]:
-    print(month, flush = True)
     X_t = stock_data[stock_data["date"] == month].drop(columns=columns_to_drop_in_x)
-    S_t = features_maker(X_t, G, P)
+    S_t = features_maker_prof(X_t, G, P)
     non_num = stock_data[stock_data["date"] == month][columns_to_drop_in_x].reset_index(drop=True)
 
     S_t = pd.concat([non_num, S_t], axis = 1)
@@ -165,10 +178,10 @@ print(S.shape, flush = True)
 months_list = stock_data["date"].unique()
 columns_to_drop_in_x = ["size_grp", "date", "r_1", "id"]
 window = 60
-epoch = 8
-K = 10
+epoch = 5
+K = 2
 D = P
-H = 4
+H = 8
 dF = 256
 ridge_penalty = 10
 lr = 1e-4
@@ -215,7 +228,6 @@ for t in range(first_t, last_T):
             optimizer.step()
 
         # print(f"  month {month}  loss={loss.item():.6f} return={w_t @ R_t_plus_one}")
-    print(months_list[t], flush = True)
     month_data = S[S["date"] == months_list[t]]
 
     X_t = month_data.drop(columns=columns_to_drop_in_x)
@@ -233,6 +245,7 @@ for t in range(first_t, last_T):
     portfolio_ret.append(predicted)
     dates_to_save.append(months_list[t + 1])
     equally_weighted.append(R_t_plus_one.mean().item())
+    print((months_list[t], predicted), flush = True)
 
 # In[ ]:
 

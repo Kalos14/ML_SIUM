@@ -143,7 +143,9 @@ months_list = stock_data["date"].unique()
 
 S = pd.DataFrame()
 i = 0
+print("running random featuresssss")
 for month in months_list[:140]:
+    print(month)
     X_t = stock_data[stock_data["date"] == month].drop(columns=columns_to_drop_in_x)
     S_t = features_maker(X_t, G, P)
     non_num = stock_data[stock_data["date"] == month][columns_to_drop_in_x].reset_index(drop=True)

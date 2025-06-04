@@ -213,7 +213,7 @@ for t in range(first_t, last_T):
             optimizer.step()
 
         # print(f"  month {month}  loss={loss.item():.6f} return={w_t @ R_t_plus_one}")
-    print(month_list[t])
+    print(months_list[t])
     month_data = S[S["date"] == months_list[t]]
 
     X_t = month_data.drop(columns=columns_to_drop_in_x)

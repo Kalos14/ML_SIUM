@@ -157,8 +157,8 @@ D = stock_data.shape[1] - len(columns_to_drop_in_x)
 H = 1
 dF = 256
 
-ridge_penalties = np.logspace(-3, 3, 7)
-lrs = np.logspace(-5, -1, 4)
+ridge_penalties = np.logspace(0, 3, 4)
+lrs = np.logspace(-7, -5, 3)
 device = "cuda" if torch.cuda.is_available() else "cpu"
 
 first_t = 61

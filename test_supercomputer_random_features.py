@@ -183,7 +183,7 @@ K = 2
 D = P
 H = 4
 dF = 256
-ridge_penalty = 1000
+ridge_penalty = 10000
 lr = 1e-4
 device = "cuda" if torch.cuda.is_available() else "cpu"
 

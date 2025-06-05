@@ -174,13 +174,13 @@ def produce_random_feature_managed_returns(P, stock_data, signals, num_seeds=2, 
     all_random_feature_managed_returns = pd.concat([all_random_feature_managed_returns, random_feature_managed_returns], axis=1)
   return all_random_feature_managed_returns
 
-P =  100#1000
+P =  1800#1000
 #signals is stock data without the returns
 
 d = signals.shape[1] # d=6 momentum signals
 scale = 1.
 
 hw_random_feature_managed_returns = produce_random_feature_managed_returns(P, stock_data, signals, num_seeds=10)
-hw_optimal_random_features = hw_efficient_portfolio_oos(raw_factor_returns=hw_random_feature_managed_returns, window=120)
+hw_optimal_random_features = hw_efficient_portfolio_oos(raw_factor_returns=hw_random_feature_managed_returns, window=360)
 
 

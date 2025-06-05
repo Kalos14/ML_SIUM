@@ -149,15 +149,13 @@ def features_maker_prof(X,G,P):
     return pd.DataFrame(S_hat)
 
 
-P = 2500
+P = 500
 G = 10
 columns_to_drop_in_x = ["size_grp", "date", "r_1", "id"]
 D = stock_data.shape[1] - len(columns_to_drop_in_x)
 months_list = stock_data["date"].unique()
-months_list = [m for m in months_list if m>= pd.Timestamp(year=1994, month=12, day=1)]
 
 S = pd.DataFrame()
-i = 0
 print("running random featuresssss", flush = True)
 for month in months_list[:140]:
     X_t = stock_data[stock_data["date"] == month].drop(columns=columns_to_drop_in_x)
@@ -178,12 +176,12 @@ print(S.shape, flush = True)
 
 columns_to_drop_in_x = ["size_grp", "date", "r_1", "id"]
 window = 60
-epoch = 2
+epoch = 10
 K = 2
 D = P
 H = 4
 dF = 256
-ridge_penalty = 10000
+ridge_penalty = 1
 lr = 1e-4
 device = "cuda" if torch.cuda.is_available() else "cpu"
 

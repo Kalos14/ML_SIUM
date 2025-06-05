@@ -1,0 +1,16 @@
+# Ignora l'ambiente virtuale
+venv/
+
+# File di cache
+__pycache__/
+*.pyc
+
+# File temporanei e OS
+.DS_Store
+Thumbs.db
+
+# Notebook checkpoints
+.ipynb_checkpoints/
+
+# Dati locali non da salvare
+data/

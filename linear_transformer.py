@@ -113,7 +113,7 @@ def hw_efficient_portfolio_oos(raw_factor_returns: pd.DataFrame, window: int = 1
     """
     oos_returns = []
     dates = []
-    shrinkage_list = [0.001, 0.01, 0.1, 1, 10, 100, 1000]#[0.01, 0.1, 1, 10, 100]  
+    shrinkage_list = [0.0001, 0.001, 0.01, 0.1, 1, 10, 100, 1000, 10000]#[0.01, 0.1, 1, 10, 100]  
 
     for t in range(window,len(raw_factor_returns)):
         X_train = raw_factor_returns.iloc[t-120:t,:].values
@@ -174,7 +174,7 @@ def produce_random_feature_managed_returns(P, stock_data, signals, num_seeds=2, 
     all_random_feature_managed_returns = pd.concat([all_random_feature_managed_returns, random_feature_managed_returns], axis=1)
   return all_random_feature_managed_returns
 
-P =  1800#1000
+P =  18000#1000
 #signals is stock data without the returns
 
 d = signals.shape[1] # d=6 momentum signals

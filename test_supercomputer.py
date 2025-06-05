@@ -186,10 +186,6 @@ for t in range(first_t, last_T):
 
     model_path = os.path.join(output_dir, f"model_weights_t{t}.pt")
     torch.save(model.state_dict(), model_path)
-
-    np.save(os.path.join(output_dir, f"X_t_tensor_t{t}.npy"), X_t_tensor.cpu().numpy())
-    np.save(os.path.join(output_dir, f"R_t_plus_one_t{t}.npy"), R_t_plus_one.cpu().numpy())
-
     #print(predicted, R_t_plus_one.mean().item() )
 
 

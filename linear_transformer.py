@@ -174,7 +174,7 @@ def produce_random_feature_managed_returns(P, stock_data, signals, num_seeds=2, 
     all_random_feature_managed_returns = pd.concat([all_random_feature_managed_returns, random_feature_managed_returns], axis=1)
   return all_random_feature_managed_returns
 
-P =  18000#1000
+P =  5000#1000
 #signals is stock data without the returns
 
 d = signals.shape[1] # d=6 momentum signals

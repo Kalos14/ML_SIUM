@@ -245,7 +245,7 @@ for t in range(first_t, last_T):
     portfolio_ret.append(predicted)
     dates_to_save.append(months_list[t + 1])
     equally_weighted.append(R_t_plus_one.mean().item())
-    print((months_list[t], predicted, R_t_plus_one.mean().item() ), flush = True)
+    print((months_list[t], predicted, R_t_plus_one.mean().item(),  torch.norm(w_t, p=2).pow(2)), flush = True)
 
 # In[ ]:
 

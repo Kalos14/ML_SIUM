@@ -156,7 +156,7 @@ D = stock_data.shape[1] - len(columns_to_drop_in_x)
 months_list = stock_data["date"].unique()
 
 S = pd.DataFrame()
-print("running random featuresssss", flush = True)
+print("running Random features", flush = True)
 for month in months_list[:140]:
     X_t = stock_data[stock_data["date"] == month].drop(columns=columns_to_drop_in_x)
     S_t = features_maker_prof(X_t, G, P)

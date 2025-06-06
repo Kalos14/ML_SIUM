@@ -237,7 +237,7 @@ set_seed(42)
 
 
 set_seed(0)  # Fixing the seed
-num_epochs = 5
+num_epochs = 10
 rolling_window = 120
 
 stock_data = stock_data.loc[stock_data.index.get_level_values('date') >= '1990-01-01']
@@ -289,7 +289,7 @@ for t in range(rolling_window, len(unique_dates)):
     with torch.no_grad():
         test_tensor = torch.tensor(test_signals.values, dtype=torch.float32).to(device)
         test_data_predictions = model(test_tensor).cpu()  # Move to CPU if using GPU
-        
+
     ###proviamo ad usare una direzione di trend
     pred_df = pd.DataFrame(test_data_predictions.numpy(), index=test_signals.index)
     if len(results) > 0:

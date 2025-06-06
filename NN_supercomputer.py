@@ -157,8 +157,9 @@ def train_loader(signals, returns):
   dates = signals.index.get_level_values('date')
   unique_dates = dates.unique()
   for date in unique_dates:
-    #print(f'running date {date}')
-    yield torch.tensor(signals.loc[dates == date].values), torch.tensor(returns.loc[dates == date].values)
+    x = torch.tensor(signals.loc[dates == date].values, dtype=torch.float32).to(device)
+    y = torch.tensor(returns.loc[dates == date].values, dtype=torch.float32).view(-1, 1).to(device)
+    yield x, y
 
 import numpy as np
 

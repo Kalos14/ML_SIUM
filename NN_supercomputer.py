@@ -237,7 +237,7 @@ set_seed(42)
 
 
 set_seed(0)  # Fixing the seed
-num_epochs = 5
+num_epochs = 15
 rolling_window = 120
 
 stock_data = stock_data.loc[stock_data.index.get_level_values('date') >= '1990-01-01']
@@ -255,7 +255,7 @@ device = "cuda" if torch.cuda.is_available() else "cpu"
 
 for t in range(rolling_window, len(unique_dates)):
 
-    model = FlexibleMLP([signals.shape[1],128,256,64, 1], scale=1.) # re-initializing weights !!!
+    model = FlexibleMLP([signals.shape[1],256,256,128,64,1], scale=1.) # re-initializing weights !!!
     model.to(device)
     criterion = mssr_loss # this is our custom loss
     optimizer = torch.optim.Adam(model.parameters(), lr=0.00001)

@@ -40,6 +40,10 @@ def build_managed_returns(returns, signals):
 
 managed_returns = build_managed_returns(returns = stock_data['r_1'], signals = signals)
 
+#create a test output to see if the code runs
+test_output = managed_returns.head(5)
+test_output.to_csv(f"{output_dir}/test_output.csv")
+
 def sharpe_ratio(returns):
   """
   The data is at monthly frequency, hence we multiply by sqrt(12)

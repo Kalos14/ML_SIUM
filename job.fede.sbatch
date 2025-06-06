@@ -12,4 +12,4 @@ module load gcc python
 # Load your virtual environment or conda environment if needed
 source /home/$USER/venv/bin/activate
 
-srun python /home/$USER/ML_SIUM/linear_transformer.py
+srun python /home/$USER/ML_SIUM/NN_supercomputer.py

@@ -149,7 +149,7 @@ def features_maker_prof(X,G,P):
     return pd.DataFrame(S_hat)
 
 
-P = 4000
+P = 2000
 G = 10
 columns_to_drop_in_x = ["size_grp", "date", "r_1", "id"]
 D = stock_data.shape[1] - len(columns_to_drop_in_x)
@@ -177,7 +177,7 @@ print(S.shape, flush = True)
 
 columns_to_drop_in_x = ["size_grp", "date", "r_1", "id"]
 window = 60
-epoch = 12
+epoch = 15
 K = 10
 D = P
 H = 8

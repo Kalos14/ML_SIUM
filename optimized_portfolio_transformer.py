@@ -49,7 +49,7 @@ class Hyper:
     H: int = 1
     dF: int = 256
     lr: float = 1e-5
-    ridge: float = 0.1
+    ridge: float = 10
     vol_window: int = 12   # rolling window for vol‑target
     use_compile: bool = False
 
@@ -112,10 +112,12 @@ class PortfolioTransformer(nn.Module):
         super().__init__(); 
         self.blocks = nn.Sequential(*[TransformerBlock(D, hyper.H, hyper.dF) for _ in range(hyper.K)]); 
         self.out = nn.Linear(D, 1, bias=False)
+    def clip_leverage(self, w):
+        lev = w.abs().sum(); cap = self.hyp.max_leverage
+        return w if lev <= cap else w/lev*cap
     def forward(self, X):
-        X = self.blocks(X)
-        w = self.out(X).flatten()  
-        return w
+        w = self.out(self.blocks(X)).flatten()
+        return self.clip_leverage(w)
 
 ################################################################################
 # 5.  Training loop (identico, ma loss adattata)
@@ -143,7 +145,6 @@ def train_loop(df: pd.DataFrame, hyper: Hyper):
                     loss = (1 - torch.dot(w, R)) ** 2 + hyper.ridge * w.pow(2).sum()
                 scaler.scale(loss).backward(); scaler.step(opt); scaler.update(); opt.zero_grad(set_to_none=True)
                 lv = loss.item(); losses.append((step, lv)); roll.append(lv)
-                if step % 500 == 0: print(f"[loss] step {step}: mean100 = {np.mean(roll):.3e}")
                 step += 1
         # OOS
         X, R = ds[t]; X, R = to_device((X, R), device)
@@ -151,7 +152,6 @@ def train_loop(df: pd.DataFrame, hyper: Hyper):
             w = model(X)
             port_ret.append(torch.dot(w, R).item())
             dates.append(df["date"].unique()[t + 1])
-            print(f"[OOS] step {step}: return = {port_ret[-1]:.3e}, date = {dates[-1]}")
     return dates, port_ret, losses
 
 ################################################################################

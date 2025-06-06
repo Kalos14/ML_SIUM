@@ -157,7 +157,7 @@ months_list = stock_data["date"].unique()
 
 S = pd.DataFrame()
 print("running Random features", flush = True)
-for month in months_list[:140]:
+for month in months_list:
     X_t = stock_data[stock_data["date"] == month].drop(columns=columns_to_drop_in_x)
     S_t = features_maker_prof(X_t, G, P)
     non_num = stock_data[stock_data["date"] == month][columns_to_drop_in_x].reset_index(drop=True)
@@ -176,12 +176,12 @@ print(S.shape, flush = True)
 
 columns_to_drop_in_x = ["size_grp", "date", "r_1", "id"]
 window = 60
-epoch = 25
+epoch = 15
 K = 4
 D = P
 H = 4
 dF = 256
-ridge_penalty = 1
+ridge_penalty = 0.1
 lr = 1e-4
 device = "cuda" if torch.cuda.is_available() else "cpu"
 

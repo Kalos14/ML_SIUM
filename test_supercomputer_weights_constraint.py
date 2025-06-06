@@ -131,12 +131,12 @@ X_non_num = stock_data[columns_to_drop_in_x]
 
 
 window = 60
-epoch = 20
+epoch = 60
 K = 10
 D = stock_data.shape[1] - len(columns_to_drop_in_x)
 H = 1
 dF = 256
-ridge_penalty = 10
+ridge_penalty = 0.1
 lr = 1e-5
 device = "cuda" if torch.cuda.is_available() else "cpu"
 
@@ -293,7 +293,7 @@ plt.plot(dates_to_save, SP_cum_return, label="S&P 500", linestyle="--")
 plt.gca().xaxis.set_major_locator(mdates.YearLocator(base=10))
 plt.gca().xaxis.set_major_formatter(mdates.DateFormatter('%Y'))
 
-plt.title(f"Cum Ret constrained: epochs = {epoch}, H = {H} , K = {K}, lr = {lr}, z = {ridge_penalty}, Sharpe Ratio = {sharpe_ratio:.2f}")
+plt.title(f"Cum Ret constrained: epochs = {epoch}, H = {H} , K = {K}, SR = {sharpe_ratio:.2f}")
 plt.xlabel("Time")
 plt.ylabel("Cumulative Return")
 plt.grid(True)
@@ -304,8 +304,8 @@ plt.close()
 
 
 end_time = time.time()
+print(f"Sharpe: {sharpe_ratio:.2f}")
 print(f"\nExecution time: {(end_time - start_time)/60:.2f} minutes")
-
 
 
 

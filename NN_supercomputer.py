@@ -237,7 +237,7 @@ set_seed(42)
 
 
 set_seed(0)  # Fixing the seed
-num_epochs = 15
+num_epochs = 5
 rolling_window = 120
 
 stock_data = stock_data.loc[stock_data.index.get_level_values('date') >= '1990-01-01']
@@ -289,13 +289,28 @@ for t in range(rolling_window, len(unique_dates)):
     with torch.no_grad():
         test_tensor = torch.tensor(test_signals.values, dtype=torch.float32).to(device)
         test_data_predictions = model(test_tensor).cpu()  # Move to CPU if using GPU
-    
+        
+    ###proviamo ad usare una direzione di trend
     pred_df = pd.DataFrame(test_data_predictions.numpy(), index=test_signals.index)
+    if len(results) > 0:
+        past_returns = pd.concat(results)
+        trend_signal = np.sign(past_returns.expanding().sum().iloc[-1])  # scalar
+    else:   
+        trend_signal = 1.0  # neutral at start
 
+# Step 2: Adjust the model-generated signals based on trend direction
+    adjusted_pred_df = pred_df * trend_signal
+
+# Step 3: Compute strategy return using adjusted weights
     managed_returns = build_managed_returns(
         returns=test_labels,
-        signals=pred_df
+        signals=adjusted_pred_df
     )
+    
+    # managed_returns = build_managed_returns(
+    #     returns=test_labels,
+    #     signals=pred_df
+    # )
     results.append(managed_returns)
 
 #calculate sharpe ratio and save the results
@@ -304,17 +319,7 @@ sr = results_series.mean()/results_series.std()*np.sqrt(12)
 print(f"Sharpe Ratio for the rolling window NN model: {sr:.2f}")
 
 
-results_df = pd.concat(results)
-results_df.index = pd.to_datetime(results_df.index)
-results_df.columns = ['returns']
-sharpe_ratio_value = sharpe_ratio(results_df['returns'])
-results_df.to_csv(f"{output_dir}/nn_rolling_window_results.csv")
-
-# Plot cumulative returns and save the plot
-(results_df / results_df.std()).cumsum().plot(title='Cumulative Returns of Neural Network OOS', figsize=(12, 6))
-plt.xlabel('Date')
-plt.ylabel('Cumulative Returns (Standardized)')
-plt.grid()
+results_series.cumsum().plot(title='Cumulative Returns of NN Rolling Window', figsize=(12, 6))
 plt.savefig(f"{output_dir}/nn_rolling_window_cumulative_returns.png")
 plt.close()
 

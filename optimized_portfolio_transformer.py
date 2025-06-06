@@ -48,7 +48,7 @@ class Hyper:
     K: int = 10
     H: int = 1
     dF: int = 256
-    lr: float = 1e-5
+    lr: float = 1e-4
     ridge: float = 10
     vol_window: int = 12   # rolling window for vol‑target
     use_compile: bool = False

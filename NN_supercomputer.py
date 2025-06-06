@@ -234,10 +234,122 @@ def set_seed(seed_value=42):
 ridge_penalty = 0.01
 set_seed(42)
 
+class ExpandedMultiHeadAttention(nn.Module):
+    """
+    Multi-Head Attention across N samples (no sequence dimension).
+    This module computes attention weights between all samples in the batch,
+    similar to standard self-attention across tokens in a sequence.
 
+    Each head sees all N samples as both queries and keys.
+    """
+
+    def __init__(self, d_input, num_heads, init_fn_dict=None, scale_dict=None):
+        """
+        Parameters:
+        - d_input (int): Input feature dimension.
+        - num_heads (int): Number of attention heads.
+        - init_fn_dict (dict): Optional dict mapping parameter names to init functions.
+        - scale_dict (dict): Optional dict mapping parameter names to scale factors.
+        """
+        super().__init__()
+
+        self.d_input = d_input                   # Original input dimension
+        self.num_heads = num_heads               # Number of attention heads
+        self.d_proj = d_input * num_heads        # Projected dimension after multi-head concat
+
+        # Linear projections for Q, K, V. These will be reshaped into heads later
+        self.W_q = nn.Linear(d_input, self.d_proj)
+        self.W_k = nn.Linear(d_input, self.d_proj)
+        self.W_v = nn.Linear(d_input, self.d_proj)
+
+        # Final output layer to map multi-head output to scalar prediction
+        self.output_layer = nn.Linear(self.d_proj, 1)
+
+        # Optional dictionaries for custom parameter initialization and scaling
+        self.init_fn_dict = init_fn_dict or {}
+        self.scale_dict = scale_dict or {}
+
+        # Initialize weights
+        self.reset_parameters()
+
+    def reset_parameters(self):
+        """
+        Applies parameter-specific initialization and scaling.
+        Falls back to Xavier initialization and 1.0 scale if unspecified.
+        """
+
+        def apply_init(name, param):
+            # Use user-specified init function or default to Xavier
+            init_fn = self.init_fn_dict.get(name, nn.init.xavier_uniform_)
+            init_fn(param)
+
+        def apply_scale(name, param):
+            # Multiply weights by a custom scalar (if provided)
+            scale = self.scale_dict.get(name, 1.0)
+            param.data.mul_(scale)
+
+        # Initialize weights and biases for each projection layer
+        for name, layer in zip(['W_q', 'W_k', 'W_v', 'output'],
+                               [self.W_q, self.W_k, self.W_v, self.output_layer]):
+            apply_init(name + '_weight', layer.weight)  # Initialize weights
+            nn.init.zeros_(layer.bias)                  # Zero the bias
+            apply_scale(name + '_weight', layer.weight) # Scale the weights
+
+    def forward(self, X, return_attention=False):
+        """
+        Forward pass of multi-head self-attention.
+
+        Parameters:
+        - X: (N, d_input) input tensor
+        - return_attention (bool): if True, also return attention weights
+
+        Returns:
+        - y: (N, 1) output predictions
+        - attn_weights (optional): (N, num_heads, N) attention scores for each head
+        """
+        N, d = X.shape
+        assert d == self.d_input, "Input feature size mismatch"
+
+        # Project input into Q, K, V for all heads: shape (N, h * d_input)
+        Q = self.W_q(X)
+        K = self.W_k(X)
+        V = self.W_v(X)
+
+        # Reshape each into (N, h, d_input) so each head has its own d_input-dim space
+        Q = Q.view(N, self.num_heads, self.d_input)
+        K = K.view(N, self.num_heads, self.d_input)
+        V = V.view(N, self.num_heads, self.d_input)
+
+        # Transpose to (h, N, d_input): each head is a separate batch
+        Q = Q.permute(1, 0, 2)
+        K = K.permute(1, 0, 2)
+        V = V.permute(1, 0, 2)
+
+        # Compute raw attention scores with scaled dot product:
+        #   (h, N, d) x (h, d, N) -> (h, N, N)
+        attn_scores = torch.matmul(Q, K.transpose(-2, -1)) / (self.d_input ** 0.5)
+
+        # Apply softmax over keys (last dimension): (h, N, N)
+        attn_weights = F.softmax(attn_scores, dim=-1)
+
+        # Apply attention weights to values:
+        #   (h, N, N) x (h, N, d) -> (h, N, d)
+        attn_output = torch.matmul(attn_weights, V)
+
+        # Recombine heads: (h, N, d) -> (N, h, d)
+        attn_output = attn_output.permute(1, 0, 2)
+
+        # Flatten across heads: (N, h, d) -> (N, h * d)
+        attn_output = attn_output.reshape(N, self.d_proj)
+
+        # Final output projection: (N, h * d) -> (N, 1)
+        y = self.output_layer(attn_output)
+
+        # Return predictions and optionally attention weights (transpose to (N, h, N))
+        return (y, attn_weights.permute(1, 0, 2)) if return_attention else y
 
 set_seed(0)  # Fixing the seed
-num_epochs = 10
+num_epochs = 20
 rolling_window = 120
 
 stock_data = stock_data.loc[stock_data.index.get_level_values('date') >= '1990-01-01']
@@ -253,7 +365,60 @@ results = []
 
 device = "cuda" if torch.cuda.is_available() else "cpu"
 
+num_heads = 4  # You can adjust this
+
 for t in range(rolling_window, len(unique_dates)):
+
+    model = ExpandedMultiHeadAttention(
+        d_input=signals.shape[1],
+        num_heads=num_heads
+    )
+    model.to(device)
+    criterion = mssr_loss  # your custom loss
+    optimizer = torch.optim.Adam(model.parameters(), lr=0.00001)
+
+    train_dates = unique_dates[t - rolling_window:t]
+    test_date = unique_dates[t]
+
+    train_signals = signals_rw.loc[pd.IndexSlice[:, train_dates], :]
+    train_labels = labels_rw.loc[pd.IndexSlice[:, train_dates]]
+
+    test_signals = signals_rw.loc[pd.IndexSlice[:, test_date], :]
+    test_labels = labels_rw.loc[pd.IndexSlice[:, test_date]]
+
+    for epoch in range(num_epochs):
+        for inputs, targets in train_loader(train_signals, train_labels):
+            outputs = model(inputs)
+            loss = criterion(outputs, targets)
+
+            optimizer.zero_grad()
+            loss.backward()
+            optimizer.step()
+
+    model.eval()
+    with torch.no_grad():
+        test_tensor = torch.tensor(test_signals.values, dtype=torch.float32).to(device)
+        test_data_predictions = model(test_tensor).cpu()
+
+    pred_df = pd.DataFrame(test_data_predictions.numpy(), index=test_signals.index)
+
+    # Trend overlay
+    if len(results) > 0:
+        past_returns = pd.concat(results)
+        trend_signal = np.sign(past_returns.expanding().sum().iloc[-1])  # scalar
+    else:   
+        trend_signal = 1.0
+
+    adjusted_pred_df = pred_df * trend_signal
+
+    managed_returns = build_managed_returns(
+        returns=test_labels,
+        signals=adjusted_pred_df
+    )
+
+    results.append(managed_returns)
+
+#
 
     model = FlexibleMLP([signals.shape[1],256,256,128,64,1], scale=1.) # re-initializing weights !!!
     model.to(device)

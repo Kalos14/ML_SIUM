@@ -234,10 +234,7 @@ def set_seed(seed_value=42):
 ridge_penalty = 0.01
 set_seed(42)
 
-width = 128
-model = FlexibleMLP([signals.shape[1], width, 1], scale=1.) # re-initializing weights !!!
-criterion = mssr_loss # this is our custom loss
-optimizer = torch.optim.Adam(model.parameters(), lr=0.00001)
+
 
 set_seed(0)  # Fixing the seed
 num_epochs = 5
@@ -258,7 +255,7 @@ device = "cuda" if torch.cuda.is_available() else "cpu"
 
 for t in range(rolling_window, len(unique_dates)):
 
-    model = FlexibleMLP([signals.shape[1], 128,256,64, 1], scale=1.) # re-initializing weights !!!
+    model = FlexibleMLP([signals.shape[1],128,256,64, 1], scale=1.) # re-initializing weights !!!
     model.to(device)
     criterion = mssr_loss # this is our custom loss
     optimizer = torch.optim.Adam(model.parameters(), lr=0.00001)
@@ -304,7 +301,8 @@ for t in range(rolling_window, len(unique_dates)):
 #calculate sharpe ratio and save the results
 results_df = pd.concat(results)
 results_df.index = pd.to_datetime(results_df.index)
-sharpe_ratio_value = sharpe_ratio(results_df)
+results_df.columns = ['returns']
+sharpe_ratio_value = sharpe_ratio(results_df['returns'])
 results_df.to_csv(f"{output_dir}/nn_rolling_window_results.csv")
 
 # Plot cumulative returns and save the plot

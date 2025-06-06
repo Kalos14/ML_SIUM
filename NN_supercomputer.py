@@ -299,6 +299,11 @@ for t in range(rolling_window, len(unique_dates)):
     results.append(managed_returns)
 
 #calculate sharpe ratio and save the results
+results_series = pd.concat(results).iloc[:, 0]
+sr = results_series.mean()/results_series.std()*np.sqrt(12)
+print(f"Sharpe Ratio for the rolling window NN model: {sr:.2f}")
+
+
 results_df = pd.concat(results)
 results_df.index = pd.to_datetime(results_df.index)
 results_df.columns = ['returns']

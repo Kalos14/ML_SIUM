@@ -154,7 +154,7 @@ G = 10
 columns_to_drop_in_x = ["size_grp", "date", "r_1", "id"]
 D = stock_data.shape[1] - len(columns_to_drop_in_x)
 months_list = stock_data["date"].unique()
-months_list = month_list[:300]
+months_list = months_list[:300]
 
 S = pd.DataFrame()
 print("running Random features", flush = True)

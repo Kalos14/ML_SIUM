@@ -177,10 +177,10 @@ print(S.shape, flush = True)
 
 columns_to_drop_in_x = ["size_grp", "date", "r_1", "id"]
 window = 60
-epoch = 15
-K = 10
+epoch = 10
+K = 15
 D = P
-H = 8
+H = 1
 dF = 256
 ridge_penalty = 1
 lr = 1e-4

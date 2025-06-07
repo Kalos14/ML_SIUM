@@ -113,6 +113,7 @@ class NonlinearPortfolioForward(nn.Module):
             X = block(X)  # propagate through K blocks
         w_t = X @ self.lambda_out.squeeze()# [N_t]
         w_t = torch.relu(w_t)  # Ensure non-negativity
+        w_t = w_t/(w_t.sum()+1e^-7)
         return w_t    # [N_t]
 
 # ## Training loop -------

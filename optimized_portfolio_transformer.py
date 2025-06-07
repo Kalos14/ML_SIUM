@@ -1,18 +1,15 @@
-# Optimized portfolio transformer – **v1.8‑cluster (20 epoche, path assoluti)**
+# Optimized random-feature portfolio – **v2.0-cluster (20 epoche, ridge, no ReLU constraint, I/O optim.)**
 # ---------------------------------------------------------------------
-#   • Identico a v1.8 ma con path hard‑coded in $HOME per i CSV su cluster.
-#   • Legge:
-#       /home/$USER/usa_131_per_size_ranks_False.pkl
-#       /home/$USER/SandP benchmark.csv
-#   • Se i file non esistono, fallback a $DATA_DIR o ./data.
+# • Rimuove qualunque ReLU sul vettore w (long/short unconstrained).
+# • Ridge penalty impostato a 1.0 per penalizzare leva elevata.
+# • Epoche portate a 20.
+# • Pre-load mensile in month_tensors, usa DataLoader con num_workers.
+# • Stampa warning se la leva gross (∑|w|) supera 1.5.
 # ---------------------------------------------------------------------
 
-import os, time, sys
+import os, time, random
 from pathlib import Path
-from dataclasses import dataclass
-from collections import deque
-from typing import List
-
+from typing import List, Tuple
 import numpy as np
 import pandas as pd
 import torch
@@ -20,170 +17,138 @@ import torch.nn as nn
 import torch.nn.functional as F
 import torch.optim as optim
 from torch.utils.data import Dataset, DataLoader, Subset
-import matplotlib
-matplotlib.use("Agg")
-import matplotlib.pyplot as plt
-import matplotlib.dates as mdates
 
-################################################################################
-# Helper
-################################################################################
+# --- Helper utils ---
 
 def set_seed(seed: int = 42):
-    torch.manual_seed(seed); torch.cuda.manual_seed_all(seed); np.random.seed(seed)
+    random.seed(seed)
+    np.random.seed(seed)
+    torch.manual_seed(seed)
+    torch.cuda.manual_seed_all(seed)
 
-def to_device(obj, dev):
-    if torch.is_tensor(obj):
-        return obj.to(dev, non_blocking=True)
-    return tuple(o.to(dev, non_blocking=True) for o in obj)
 
 def num_workers_auto(max_w=8):
     cores = os.cpu_count() or 2
     return min(max_w, max(1, cores // 2))
 
-################################################################################
-# Hyper
-################################################################################
-@dataclass
-class Hyper:
-    window: int = 60
-    epochs: int = 20
-    K: int = 10; H: int = 1; dF: int = 256
-    lr: float = 1e-5
-    ridge: float = 1.0
-    vol_window: int = 12
-    use_compile: bool = False
+# --- Random feature generation ---
 
-################################################################################
-# Dataset
-################################################################################
-class MonthlyDataset(Dataset):
-    def __init__(self, df: pd.DataFrame, feat: List[str]):
-        self.months = [m for _, m in df.groupby("date", sort=True)]
-        self.feat = feat
-    def __len__(self): return len(self.months)
-    def __getitem__(self, idx):
-        g = self.months[idx]
-        X = torch.tensor(g[self.feat].values, dtype=torch.float32)
-        R = torch.tensor(g["r_1"].values, dtype=torch.float32)
-        return X, R
+def features_maker_prof(X: np.ndarray, G: int, P: int) -> pd.DataFrame:
+    d = X.shape[1]
+    S_hat_list = []
+    for g in range(G):
+        W_g = np.sqrt(2) * np.random.randn(d, P//(2*G)) / np.sqrt(d)
+        XWg = X @ W_g
+        cos_part = np.sqrt(2) * np.cos(XWg)
+        sin_part = np.sqrt(2) * np.sin(XWg)
+        S_hat_list.append(np.concatenate([cos_part, sin_part], axis=1))
+    S_hat = np.concatenate(S_hat_list, axis=1)
+    return pd.DataFrame(S_hat)
 
-################################################################################
-# Model (no L1 budget, leva variabile)
-################################################################################
+# --- Transformer model ---
+
 class MultiHeadAttention(nn.Module):
     def __init__(self, D, H):
         super().__init__(); assert D % H == 0
         self.H, self.dk = H, D // H
         self.Wqkv = nn.Linear(D, 2*D, bias=False)
-        self.scale = self.dk ** 0.5
+        self.scale = self.dk**0.5
     def forward(self, X):
         qk, v = self.Wqkv(X).chunk(2, -1)
-        qk = qk.view(X.size(0), self.H, self.dk); v = v.view(X.size(0), self.H, self.dk)
-        a = torch.softmax(torch.einsum("nhd,mhd->hnm", qk, qk)/self.scale, -1)
-        return torch.einsum("hnm,mhd->nhd", a, v).reshape(X.size(0), -1)
+        qk = qk.view(X.size(0), self.H, self.dk)
+        v  = v.view(X.size(0), self.H, self.dk)
+        att = torch.softmax(torch.einsum("nhd,mhd->hnm", qk, qk)/self.scale, -1)
+        return torch.einsum("hnm,mhd->nhd", att, v).reshape(X.size(0), -1)
 
 class FeedForward(nn.Module):
-    def __init__(self, D, dF):
-        super().__init__(); self.net = nn.Sequential(nn.Linear(D,dF), nn.ReLU(), nn.Linear(dF,D), nn.Dropout(0.1))
+    def __init__(self, D, dF): super().__init__(); self.net = nn.Sequential(nn.Linear(D,dF), nn.ReLU(), nn.Linear(dF,D), nn.Dropout(0.1))
     def forward(self, X): return self.net(X)
 
 class TransformerBlock(nn.Module):
     def __init__(self, D, H, dF):
-        super().__init__(); self.attn = MultiHeadAttention(D,H); self.ffn = FeedForward(D,dF); self.l1=nn.LayerNorm(D); self.l2=nn.LayerNorm(D)
+        super().__init__(); self.attn=MultiHeadAttention(D,H); self.ffn=FeedForward(D,dF);
+        self.l1=nn.LayerNorm(D); self.l2=nn.LayerNorm(D)
+    def forward(self, X): return self.l2(X + self.ffn(self.l1(X + self.attn(X))))
+
+class NonlinearPortfolioForward(nn.Module):
+    def __init__(self, D, K, H=1, dF=256):
+        super().__init__()
+        self.blocks = nn.ModuleList([TransformerBlock(D,H,dF) for _ in range(K)])
+        self.lambda_out = nn.Parameter(torch.randn(D,1)/1000)
     def forward(self, X):
-        X = self.l1(X + self.attn(X)); return self.l2(X + self.ffn(X))
+        for block in self.blocks: X = block(X)
+        return (X @ self.lambda_out).squeeze()  # no ReLU
 
-class PortfolioTransformer(nn.Module):
-    def __init__(self, D, hyp: Hyper):
-        super().__init__(); self.blocks = nn.Sequential(*[TransformerBlock(D,hyp.H,hyp.dF) for _ in range(hyp.K)]); self.out = nn.Linear(D,1,bias=False)
-    def forward(self, X):
-        return self.out(self.blocks(X)).flatten()
+# --- Dataset for preloaded month tensors ---
 
-################################################################################
-# Training / OOS
-################################################################################
+class MonthTensorDataset(Dataset):
+    def __init__(self, data: List[Tuple[torch.Tensor, torch.Tensor]]): self.data = data
+    def __len__(self): return len(self.data)
+    def __getitem__(self, idx): return self.data[idx]
 
-def train_loop(df: pd.DataFrame, hyp: Hyper):
-    feat = [c for c in df.columns if c not in {"size_grp","date","r_1","id"}]
-    ds = MonthlyDataset(df, feat)
-    dev = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    model = PortfolioTransformer(len(feat), hyp).to(dev)
-    opt = optim.Adam(model.parameters(), lr=hyp.lr, weight_decay=1e-5)
-    scaler = torch.cuda.amp.GradScaler(enabled=torch.cuda.is_available(), device_type="cuda")
+# --- Training & OOS with DataLoader ---
+lev_dates = 0
+def train_loop(month_tensors, dates, window, epochs, lr, ridge):
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    D = month_tensors[0][0].shape[1]
+    model = NonlinearPortfolioForward(D=D, K=10, H=1, dF=256).to(device)
+    opt = optim.Adam(model.parameters(), lr=lr, weight_decay=1e-5)
+    scaler = torch.amp.GradScaler('cuda', enabled=torch.cuda.is_available())
 
+    dataset = MonthTensorDataset(month_tensors)
     nw = num_workers_auto()
-    make_loader = lambda idxs: DataLoader(Subset(ds, idxs), batch_size=None, shuffle=False, pin_memory=True, num_workers=nw)
+    def loader(idxs): return DataLoader(Subset(dataset, idxs), batch_size=None, shuffle=False, pin_memory=True, num_workers=nw)
 
-    rets, dates, losses, step = [], [], [], 0
-    uq_dates = df["date"].unique()
-
-    for t in range(hyp.window, len(ds)-1):
-        loader = make_loader(range(t-hyp.window, t))
-        for _ in range(hyp.epochs):
-            for X,R in loader:
-                X,R = to_device((X,R), dev)
+    rets, oos_dates = [], []
+    for t in range(window, len(dataset)-1):
+        # in-sample training
+        for _ in range(epochs):
+            for X_cpu, R_cpu in loader(range(t-window, t)):
+                X, R = X_cpu.to(device), R_cpu.to(device)
                 with torch.cuda.amp.autocast(enabled=torch.cuda.is_available()):
-                    w = model(X); loss = (1 - torch.dot(w,R))**2 + hyp.ridge * w.pow(2).sum()
-                scaler.scale(loss).backward(); scaler.step(opt); scaler.update(); opt.zero_grad(set_to_none=True)
-                losses.append((step, loss.item())); step += 1
-        # OOS
-        X,R = ds[t]; X,R = to_device((X,R), dev)
+                    w = model(X)
+                    loss = (1 - torch.dot(w,R))**2 + ridge * w.pow(2).sum()
+                opt.zero_grad(); scaler.scale(loss).backward(); scaler.step(opt); scaler.update()
+        # OOS prediction
+        X_cpu, R_cpu = month_tensors[t]
+        X, R = X_cpu.to(device), R_cpu.to(device)
         with torch.no_grad():
-            w = model(X); rets.append(torch.dot(w,R).item()); dates.append(uq_dates[t+1])
-    return dates, rets, losses
+            w = model(X)
+            lever = w.abs().sum().item()
+            if lever > 1.5:
+                print(f"[WARN] excessive leverage={lever:.2f} at date {dates[t]}")
+                lev_dates= lev_dates+1
+            rets.append(torch.dot(w,R).item()); oos_dates.append(dates[t+1])
+    return oos_dates, rets
 
-################################################################################
-# Vol‑managed
-################################################################################
-
-def vol_managed(series: pd.Series, window:int):
-    return series / series.rolling(window).std().shift(1)
-
-################################################################################
-# Main
-################################################################################
+# --- Main ---
 
 def main():
-    set_seed(); start = time.time()
-
-    # ----- absolute paths on cluster -----
+    set_seed()
     home = Path(f"/home/{os.getenv('USER')}")
-    dataset_path  = home/"usa_131_per_size_ranks_False.pkl"
-    bench_path    = home/"SandP benchmark.csv"
+    df = pd.read_pickle(home/"usa_131_per_size_ranks_False.pkl")
+    df = df[df['size_grp']=='micro']
 
-    if dataset_path.exists():
-        df = pd.read_pickle(dataset_path)
-    else:
-        # fallback
-        df = pd.read_pickle(Path(os.getenv("DATA_DIR","data"))/"usa_131_per_size_ranks_False.pkl")
-    df = df.query("size_grp=='micro'")
+    # random features expansion
+    P, G = 2000, 10
+    records = []  # (date, X_tensor, R_tensor)
+    for date, grp in df.groupby('date', sort=True):
+        X_np = grp.drop(columns=['size_grp','date','r_1','id']).values
+        S_t = features_maker_prof(X_np, G, P)
+        X_t = torch.tensor(S_t.values, dtype=torch.float32)
+        R_t = torch.tensor(grp['r_1'].values, dtype=torch.float32)
+        records.append((date, X_t, R_t))
+    dates = [r[0] for r in records]
+    month_tensors = [(r[1], r[2]) for r in records]
 
-    hyp = Hyper()
-    dates, rets, losses = train_loop(df, hyp)
+    # run training & OOS
+    window, epochs, lr, ridge = 60, 20, 1e-4, 1.0
+    oos_dates, rets = train_loop(month_tensors, dates, window, epochs, lr, ridge)
 
-    out = Path("project_results_constrained"); out.mkdir(exist_ok=True)
+    # save returns
+    out = Path("project_results_ran_feat"); out.mkdir(exist_ok=True)
+    pd.DataFrame({'Date':oos_dates,'Return':rets}).to_csv(out/"ranfeat_returns.csv", index=False)
 
-    ser = pd.Series(rets, index=pd.to_datetime(dates), name="Return")
-    ser.to_csv(out/"short_constrain_raw.csv")
-    ser_man = vol_managed(ser, hyp.vol_window).rename("ManagedReturn")
-    ser_man.to_csv(out/"short_constrain_managed.csv")
-    pd.DataFrame(losses, columns=["step","loss"]).to_csv(out/"training_loss.csv", index=False)
+    print("Done: epochs=20, ridge=1.0. Results in", out/"ranfeat_returns.csv")
 
-    # Sharpe
-    sharpe = lambda s: (s.mean()/s.std(ddof=0))*np.sqrt(12)
-    sr_raw, sr_man = sharpe(ser), sharpe(ser_man)
-
-    # Benchmark plot
-    if bench_path.exists():
-        bench = pd.read_csv(bench_path, parse_dates=[0])
-        bench.set_index(bench.columns[0], inplace=True)
-        bench_series = bench[bench.columns[-1]].rename("Benchmark") / 100
-        bench_series = bench_series.reindex(ser.index).dropna()
-        s_al, b_al = ser.align(bench_series, join="inner")
-        plt.figure(figsize=(9,5))
-        plt.plot(s_al.cumsum(), label="Raw cumsum")
-        plt.plot(b_al.cumsum(), label="S&P cumsum", linestyle="--")
-        plt.title(f"CumSum Raw vs S&P | SR_raw {sr_raw:.2f}")
-        plt.gca().xaxis.set_major_locator(mdates.YearLocator(base=10))
-        plt.gca().x
+if __name__=="__main__": main()

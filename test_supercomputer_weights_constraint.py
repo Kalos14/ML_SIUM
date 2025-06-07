@@ -240,12 +240,12 @@ data = {
 print("len(dates_to_save):", len(dates_to_save))
 print("len(portfolio_ret):", len(portfolio_ret))
 
-lele = pd.DataFrame(data)
+MEGA_lele = pd.DataFrame(data)
 
 # Step 3: Export to CSV
 
 csv_path = output_dir / "short_constrain.csv"
-lele.to_csv(csv_path, index=False)
+MEGA_lele.to_csv(csv_path, index=False)
 
 # torch.save(run_artifacts, output_dir / "artifacts_run.pt")
 
@@ -277,7 +277,7 @@ portfolio_cum_return = np.cumsum(np.asarray(portfolio_ret)[:len(aligned_dates)])
 # momentum = np.cumsum(momentum)
 
 #Sharpe Ratio
-ret = np.array(lele["Return"].values)
+ret = np.array(MEGA_lele["Return"].values)
 mean = ret.mean()
 std = ret.std(ddof=1)
 sharpe_ratio = np.sqrt(12) *mean / std # Annualized Sharpe Ratio
@@ -292,13 +292,13 @@ plt.plot(dates_to_save, SP_cum_return, label="S&P 500", linestyle="--")
 plt.gca().xaxis.set_major_locator(mdates.YearLocator(base=10))
 plt.gca().xaxis.set_major_formatter(mdates.DateFormatter('%Y'))
 
-plt.title(f"Cum Ret constrained: epochs = {epoch}, H = {H} , K = {K}, SR = {sharpe_ratio:.2f}")
+plt.title(f"Cum Ret constrained: epochs = {epoch}, H = {H} , K = {K}, z ={ridge_penalty} SR = {sharpe_ratio:.2f}")
 plt.xlabel("Time")
 plt.ylabel("Cumulative Return")
 plt.grid(True)
 plt.legend()
 plt.tight_layout()
-plt.savefig(os.path.join(output_dir, "constrained_plot.png"))
+plt.savefig(os.path.join(output_dir, "MEGA.constrained_plot.png"))
 plt.close()
 
 

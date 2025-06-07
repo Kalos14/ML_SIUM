@@ -178,11 +178,11 @@ print(S.shape, flush = True)
 columns_to_drop_in_x = ["size_grp", "date", "r_1", "id"]
 window = 60
 epoch = 10
-K = 15
+K = 10
 D = P
-H = 1
+H = 8
 dF = 256
-ridge_penalty = 1
+ridge_penalty = 0.1
 lr = 1e-4
 device = "cuda" if torch.cuda.is_available() else "cpu"
 

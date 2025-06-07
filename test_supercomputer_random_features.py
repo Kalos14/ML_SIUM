@@ -149,7 +149,7 @@ def features_maker_prof(X,G,P):
     return pd.DataFrame(S_hat)
 
 
-P = 2000
+P = 500
 G = 10
 columns_to_drop_in_x = ["size_grp", "date", "r_1", "id"]
 D = stock_data.shape[1] - len(columns_to_drop_in_x)
@@ -178,10 +178,10 @@ print(S.shape, flush = True)
 columns_to_drop_in_x = ["size_grp", "date", "r_1", "id"]
 window = 60
 epoch = 10
-K = 10
+K = 3
 D = P
-H = 8
-dF = 256
+H = 4
+dF = 128
 ridge_penalty = 0.1
 lr = 1e-4
 device = "cuda" if torch.cuda.is_available() else "cpu"

@@ -35,7 +35,7 @@ set_seed(42)
 dataset_path = f"/home/{os.environ['USER']}/usa_131_per_size_ranks_False.pkl"
 stock_data = pd.read_pickle(dataset_path)
 
-stock_data = stock_data[stock_data["size_grp"] == "micro"]
+#stock_data = stock_data[stock_data["size_grp"] == "micro"]
 #stock_data = stock_data[stock_data["id"]%6 == 0]
 
 benchmark_path = f"/home/{os.environ['USER']}/SandP benchmark.csv"
@@ -149,7 +149,7 @@ def features_maker_prof(X,G,P):
     return pd.DataFrame(S_hat)
 
 
-P = 500
+P = 2000
 G = 10
 columns_to_drop_in_x = ["size_grp", "date", "r_1", "id"]
 D = stock_data.shape[1] - len(columns_to_drop_in_x)
@@ -177,12 +177,12 @@ print(S.shape, flush = True)
 
 columns_to_drop_in_x = ["size_grp", "date", "r_1", "id"]
 window = 60
-epoch = 10
-K = 3
+epoch = 8
+K = 2
 D = P
 H = 4
 dF = 128
-ridge_penalty = 0.1
+ridge_penalty = 1
 lr = 1e-4
 device = "cuda" if torch.cuda.is_available() else "cpu"
 

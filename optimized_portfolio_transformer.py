@@ -93,7 +93,7 @@ def train_loop(month_tensors, dates, window, epochs, lr, ridge):
     D = month_tensors[0][0].shape[1]
     model = NonlinearPortfolioForward(D, K=10, H=1, dF=256).to(device)
     opt = optim.Adam(model.parameters(),lr=lr,weight_decay=1e-5)
-    scaler = torch.amp.GradScaler(enabled=torch.cuda.is_available())
+    scaler = torch.amp.GradScaler('cuda', enabled=torch.cuda.is_available())
 
     dataset = MonthTensorDataset(month_tensors)
     nw = num_workers_auto()
@@ -106,7 +106,7 @@ def train_loop(month_tensors, dates, window, epochs, lr, ridge):
         for _ in range(epochs):
             for Xc,Rc in loader(range(t-window,t)):
                 X,R = Xc.to(device), Rc.to(device)
-                with torch.amp.autocast(enabled=torch.cuda.is_available()):
+                with torch.amp.autocast(device_type="cuda", enabled=torch.cuda.is_available()):
                     w = model(X)
                     loss = (1-torch.dot(w,R))**2 + ridge * w.pow(2).sum()
                 opt.zero_grad(); scaler.scale(loss).backward(); scaler.step(opt); scaler.update()

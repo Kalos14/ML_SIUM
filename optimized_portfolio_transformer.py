@@ -48,8 +48,13 @@ class Hyper:
     K: int = 10
     H: int = 1
     dF: int = 256
+<<<<<<< HEAD
     lr: float = 1e-5
     ridge: float = 1
+=======
+    lr: float = 1e-4
+    ridge: float = 10
+>>>>>>> ef419e7cf70ed728ddfb0da61e5d9ac28f53101c
     vol_window: int = 12   # rolling window for vol‑target
     use_compile: bool = False
 
@@ -112,10 +117,19 @@ class PortfolioTransformer(nn.Module):
         super().__init__(); 
         self.blocks = nn.Sequential(*[TransformerBlock(D, hyper.H, hyper.dF) for _ in range(hyper.K)]); 
         self.out = nn.Linear(D, 1, bias=False)
+<<<<<<< HEAD
     def forward(self, X):
         X = self.blocks(X)
         w = self.out(X).flatten()  
         return w
+=======
+    def clip_leverage(self, w):
+        lev = w.abs().sum(); cap = self.hyp.max_leverage
+        return w if lev <= cap else w/lev*cap
+    def forward(self, X):
+        w = self.out(self.blocks(X)).flatten()
+        return self.clip_leverage(w)
+>>>>>>> ef419e7cf70ed728ddfb0da61e5d9ac28f53101c
 
 ################################################################################
 # 5.  Training loop (identico, ma loss adattata)
@@ -150,8 +164,11 @@ def train_loop(df: pd.DataFrame, hyper: Hyper):
             w = model(X)
             port_ret.append(torch.dot(w, R).item())
             dates.append(df["date"].unique()[t + 1])
+<<<<<<< HEAD
             if np.linalg.norm(w) > 2.5:
                 print(f"[AAA] here norm is {np.linalg.norm(w):.3e}, date = {dates[-1]}")
+=======
+>>>>>>> ef419e7cf70ed728ddfb0da61e5d9ac28f53101c
     return dates, port_ret, losses
 
 ################################################################################
@@ -169,11 +186,25 @@ def main():
     tic = time.time(); set_seed()
 
     # ---- load data ----
+<<<<<<< HEAD
     df = pd.read_pickle(Path("data") / "usa_131_per_size_ranks_False.pkl")
     df = df[df["size_grp"] == "micro"].copy()
 
     hyper = Hyper()
     dates, rets, losses = train_loop(df, hyper)
+=======
+    dataset_path = f"/home/{os.environ['USER']}/usa_131_per_size_ranks_False.pkl"
+    stock_data = pd.read_pickle(dataset_path)
+    
+    stock_data = stock_data[stock_data["size_grp"] == "micro"]
+
+    benchmark_path = f"/home/{os.environ['USER']}/SandP benchmark.csv"
+    
+    SP_benchmark = pd.read_csv(benchmark_path)
+
+    hyper = Hyper()
+    dates, rets, losses = train_loop(stock_data, hyper)
+>>>>>>> ef419e7cf70ed728ddfb0da61e5d9ac28f53101c
 
     out_dir = Path("project_results_constrained"); out_dir.mkdir(exist_ok=True)
     # raw portfolio returns
@@ -185,6 +216,56 @@ def main():
     # training loss
     pd.DataFrame(losses, columns=["step", "loss"]).to_csv(out_dir / "training_loss.csv", index=False)
 
+<<<<<<< HEAD
+=======
+    #Plot
+    
+    import matplotlib.pyplot as plt
+    import matplotlib.dates as mdates
+    
+    SP_benchmark["caldt"] = pd.to_datetime(SP_benchmark["caldt"])
+    dates_to_save = pd.to_datetime(dates_to_save)
+    
+    # Create monthly periods
+    SP_benchmark["caldt_period"] = SP_benchmark["caldt"].dt.to_period("M")
+    dates_period = pd.Series(dates_to_save).dt.to_period("M")
+    
+    # Filter SP rows to only those with matching year/month
+    SP_ret = SP_benchmark[SP_benchmark["caldt_period"].isin(dates_period)]
+    
+    # Sort and align
+    SP_ret = SP_ret.sort_values("caldt")
+    SP_cum_return = np.cumsum(SP_ret["vwretd"].values)
+    
+    # Use the same date order for plotting
+    aligned_dates = SP_ret["caldt"].values
+    portfolio_cum_return = np.cumsum(np.asarray(portfolio_ret)[:len(aligned_dates)])
+    
+    #Sharpe Ratio
+    ret = np.array(lele["Return"].values)
+    mean = ret.mean()
+    std = ret.std(ddof=1)
+    sharpe_ratio = np.sqrt(12) *mean / std # Annualized Sharpe Ratio
+    
+    plt.figure()
+    plt.plot(dates_to_save, portfolio_cum_return, label="constrained Portfolio")
+    plt.plot(dates_to_save, SP_cum_return, label="S&P 500", linestyle="--")
+
+    # Formatting
+    plt.gca().xaxis.set_major_locator(mdates.YearLocator(base=10))
+    plt.gca().xaxis.set_major_formatter(mdates.DateFormatter('%Y'))
+    
+    plt.title(f"Cum Ret constrained: epochs = {epoch}, H = {H} , K = {K}, SR = {sharpe_ratio:.2f}")
+    plt.xlabel("Time")
+    plt.ylabel("Cumulative Return")
+    plt.grid(True)
+    plt.legend()
+    plt.tight_layout()
+    plt.savefig(os.path.join(output_dir, "constrained_plot.png"))
+    plt.close()
+
+
+>>>>>>> ef419e7cf70ed728ddfb0da61e5d9ac28f53101c
     print(f"Finished in {(time.time()-tic)/60:.1f} min → {len(rets)} OOS months, saved raw & managed returns.")
 
 if __name__ == "__main__":

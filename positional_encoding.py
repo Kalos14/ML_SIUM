@@ -26,7 +26,7 @@ def set_seed(seed=42):
 
 set_seed(42)
 
-dataset_path = f"/home/{os.environ['USER']}/our_version_norm.pkl"
+dataset_path = f"/home/{os.environ['USER']}/usa_131_per_size_ranks_False.pkl"
 benchmark_path = f"/home/{os.environ['USER']}/SandP benchmark.csv"
 
 # --- Load & Prepare Data ---

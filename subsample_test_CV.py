@@ -144,11 +144,13 @@ for ridge in ridge_penalties:
             w_next  = model(X_t)
             ret_t   = (w_next @ R_next).item()
             cum_rets.append(ret_t)
+            
 
     cum_rets = np.cumsum(cum_rets)
+    SR = cum_rets.mean()/cum_rets.std() *np.sqrt(12)
     # Plotto la curva cumulata per questa lambda
     plt.plot(months_list[first_t:last_t], cum_rets,
-             label=f"ridge={ridge:.0e}")
+             label=f"ridge={ridge:.0e}, SR ={SR:.0e}")
 
 # Aggiungo S&P 500 per riferimento
 dates_period = pd.Series(months_list[first_t:last_t]).astype("datetime64[ns]").tolist()

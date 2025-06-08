@@ -130,7 +130,7 @@ X_non_num = stock_data[columns_to_drop_in_x]
 
 
 window = 60
-epoch = 5
+epoch = 2
 K = 10
 D = stock_data.shape[1] - len(columns_to_drop_in_x)
 H = 1

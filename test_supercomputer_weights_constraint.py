@@ -113,7 +113,7 @@ class NonlinearPortfolioForward(nn.Module):
         for block in self.blocks:
             X = block(X)  # propagate through K blocks
         w_t = X @ self.lambda_out.squeeze() + self.bias
-        w_t = F.softplus(w_raw)
+        w_t = F.softplus(w_t)
         return w_t    # [N_t]
 
 # ## Training loop -------

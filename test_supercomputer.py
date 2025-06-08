@@ -114,10 +114,10 @@ class NonlinearPortfolioForward(nn.Module):
 months_list = stock_data["date"].unique()
 columns_to_drop_in_x = ["size_grp", "date", "r_1", "id"]
 window = 60
-epoch = 10
+epoch = 5
 K = 10
 D = stock_data.shape[1] - len(columns_to_drop_in_x)
-H = 5
+H = 10
 dF = 256
 ridge_penalty = 10
 lr = 1e-4

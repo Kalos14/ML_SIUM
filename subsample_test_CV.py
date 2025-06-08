@@ -102,7 +102,7 @@ K              = 10
 H              = 1
 dF             = 256
 lr             = 1e-4
-ridge_penalties = np.logspace(-2, 0, 3)  # es. [1, 10, 100, 1000]
+ridge_penalties = np.logspace(-4, -1, 4)  # es. [1, 10, 100, 1000]
 
 first_t = window + 1
 last_t  = len(months_list) - 1

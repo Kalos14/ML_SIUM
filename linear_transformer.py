@@ -25,7 +25,7 @@ benchmark_path = f"/home/{os.environ['USER']}/SandP benchmark.csv"
 SP_benchmark = pd.read_csv(benchmark_path)
 SP_benchmark["caldt"] = pd.to_datetime(SP_benchmark["caldt"])
 
-size_group = 'mega'
+size_group = 'micro'
 if size_group is not None:
   stock_data = stock_data.loc[stock_data.size_grp==size_group]
 

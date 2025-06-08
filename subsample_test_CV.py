@@ -32,8 +32,8 @@ output_dir.mkdir(exist_ok=True)
 
 # ── Caricamento dati ───────────────────────────────────────────────────────────
 # Modifica questi percorsi se servono
-dataset_path   = "/home/{user}/usa_131_per_size_ranks_False.pkl"
-benchmark_path = "/home/{user}/SandP benchmark.csv"
+dataset_path   = f"/home/{os.environ['USER']}/usa_131_per_size_ranks_False.pkl"
+benchmark_path = f"/home/{os.environ['USER']}/SandP benchmark.csv"
 
 stock_data = pd.read_pickle(dataset_path)
 stock_data = stock_data[stock_data["size_grp"] == "micro"]

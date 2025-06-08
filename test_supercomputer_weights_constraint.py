@@ -107,13 +107,13 @@ class NonlinearPortfolioForward(nn.Module):
         super().__init__()
         self.blocks = nn.ModuleList([TransformerBlock(D, H, dF) for _ in range(K)])
         self.lambda_out = nn.Parameter(torch.randn(D, 1)/1000)  # final projection
+        self.bias = nn.Parameter(torch.zeros(1))
 
     def forward(self, X):  # X: [N_t, D]
         for block in self.blocks:
             X = block(X)  # propagate through K blocks
-        w_t = X @ self.lambda_out.squeeze()# [N_t]
-        w_t = torch.relu(w_t)  # Ensure non-negativity
-        w_t = w_t/(w_t.sum()+1e-7)
+        w_t = X @ self.lambda_out.squeeze() + self.bias
+        w_t = F.soflplus(w_raw)
         return w_t    # [N_t]
 
 # ## Training loop -------
@@ -130,7 +130,7 @@ X_non_num = stock_data[columns_to_drop_in_x]
 
 
 window = 60
-epoch = 20
+epoch = 10
 K = 10
 D = stock_data.shape[1] - len(columns_to_drop_in_x)
 H = 1

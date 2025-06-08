@@ -130,7 +130,7 @@ X_non_num = stock_data[columns_to_drop_in_x]
 
 
 window = 60
-epoch = 10
+epoch = 5
 K = 10
 D = stock_data.shape[1] - len(columns_to_drop_in_x)
 H = 1
@@ -244,7 +244,7 @@ MEGA_lele = pd.DataFrame(data)
 
 # Step 3: Export to CSV
 
-csv_path = output_dir / "short_constrain.csv"
+csv_path = output_dir / "MEGA_short_constrain.csv"
 MEGA_lele.to_csv(csv_path, index=False)
 
 # torch.save(run_artifacts, output_dir / "artifacts_run.pt")

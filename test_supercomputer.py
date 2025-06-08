@@ -151,7 +151,7 @@ for t in range(first_t, last_T):
             X_t_tensor = torch.tensor(X_t.values, dtype=torch.float32, device=device)  # Shape: [N_t, D]
             w_t = model(X_t_tensor)  # Shape: [N_t]
 
-        
+            loss = (1 - torch.dot(w_t, R_t_plus_one)).pow(2) + ridge_penalty * torch.norm(w_t, p=2).pow(2)
 
             optimizer.zero_grad()
             loss.backward()

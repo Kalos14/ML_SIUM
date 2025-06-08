@@ -120,7 +120,7 @@ D = stock_data.shape[1] - len(columns_to_drop_in_x)
 H = 1
 dF = 256
 ridge_penalty = 10
-lr = 1e-5
+lr = 1e-4
 device = "cuda" if torch.cuda.is_available() else "cpu"
 
 
@@ -184,8 +184,7 @@ for t in range(first_t, last_T):
     equally_weighted.append(R_t_plus_one.mean().item())
     
 
-    model_path = os.path.join(output_dir, f"model_weights_t{t}.pt")
-    torch.save(model.state_dict(), model_path)
+
     #print(predicted, R_t_plus_one.mean().item() )
 
 

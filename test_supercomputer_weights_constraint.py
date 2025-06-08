@@ -138,6 +138,7 @@ dF = 256
 ridge_penalty = 0.1
 lr = 1e-4
 device = "cuda" if torch.cuda.is_available() else "cpu"
+print(f"device={device}")
 
 # run_artifacts = {
 #     "hyperparams": dict(window=window, epoch=epoch, K=K, D=D, H=H,

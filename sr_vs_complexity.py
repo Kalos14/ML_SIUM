@@ -16,7 +16,7 @@ stock_data = pd.read_pickle(dataset_path)
 # stock_data = stock_data[stock_data["size_grp"] == "large"]
 
 # stock_data = pd.read_pickle('our_version_norm.pkl')
-size_group = 'micro'
+size_group = 'small'
 if size_group is not None:
   stock_data = stock_data.loc[stock_data.size_grp==size_group]
 

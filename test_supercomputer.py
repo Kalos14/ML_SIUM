@@ -114,10 +114,10 @@ class NonlinearPortfolioForward(nn.Module):
 months_list = stock_data["date"].unique()
 columns_to_drop_in_x = ["size_grp", "date", "r_1", "id"]
 window = 60
-epoch = 5
+epoch = 12
 K = 10
 D = stock_data.shape[1] - len(columns_to_drop_in_x)
-H = 10
+H = 1
 dF = 256
 ridge_penalty = 10
 lr = 1e-4
@@ -203,7 +203,7 @@ lele = pd.DataFrame(data)
 
 # Step 3: Export to CSV
 
-csv_path = os.path.join(output_dir, "lele_DF.csv")
+csv_path = os.path.join(output_dir, "lele_DF_small.csv")
 
 lele.to_csv(csv_path, index=False)
 # In[22]:
@@ -242,14 +242,14 @@ plt.plot(dates_to_save, equally_cum_return, label="Equally Weighted", linestyle=
 plt.gca().xaxis.set_major_locator(mdates.YearLocator(base=10))
 plt.gca().xaxis.set_major_formatter(mdates.DateFormatter('%Y'))
 
-plt.title(f"Cum Ret: epochs = {epoch}, H = {H}, K = {K}, lr = {lr}, z = {ridge_penalty}")
+plt.title(f"Cum Ret: epochs = {20}, H = {H}, K = {K}, lr = {lr}, z = {ridge_penalty}")
 plt.xlabel("Time")
 plt.ylabel("Cumulative Return")
 plt.grid(True)
 plt.legend()
 plt.tight_layout()
 
-plt.savefig(os.path.join(output_dir, "myplotSIUM.png"))
+plt.savefig(os.path.join(output_dir, "myplotSIUM_small.png"))
 plt.close()
 
 

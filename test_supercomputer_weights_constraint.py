@@ -37,7 +37,7 @@ set_seed(42)
 
 # In[2]:
 
-dataset_path = f"/home/{os.environ['USER']}/usa_131_per_size_ranks_False.pkl"
+dataset_path = f"/home/{os.environ['USER']}/our_version_norm.pkl"
 stock_data = pd.read_pickle(dataset_path)
 
 stock_data = stock_data[stock_data["size_grp"] == "mega"]
@@ -130,12 +130,12 @@ X_non_num = stock_data[columns_to_drop_in_x]
 
 
 window = 60
-epoch = 2
+epoch = 12
 K = 10
 D = stock_data.shape[1] - len(columns_to_drop_in_x)
 H = 1
 dF = 256
-ridge_penalty = 0.1
+ridge_penalty = 0.01
 lr = 1e-4
 device = "cuda" if torch.cuda.is_available() else "cpu"
 print(f"device={device}")
@@ -293,7 +293,7 @@ plt.plot(dates_to_save, SP_cum_return, label="S&P 500", linestyle="--")
 plt.gca().xaxis.set_major_locator(mdates.YearLocator(base=10))
 plt.gca().xaxis.set_major_formatter(mdates.DateFormatter('%Y'))
 
-plt.title(f"Cum Ret constrained: epochs = {epoch}, H = {H} , K = {K}, z ={ridge_penalty} SR = {sharpe_ratio:.2f}")
+plt.title(f"Cum Ret constrained: epochs = 20, H = {H} , K = {K}, z ={ridge_penalty} SR = {sharpe_ratio:.2f}")
 plt.xlabel("Time")
 plt.ylabel("Cumulative Return")
 plt.grid(True)

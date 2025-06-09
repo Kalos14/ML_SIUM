@@ -13,10 +13,7 @@ import os
 dataset_path = f"/home/{os.environ['USER']}/our_version_norm.pkl"
 stock_data = pd.read_pickle(dataset_path)
 
-# stock_data = stock_data[stock_data["size_grp"] == "large"]
-
-# stock_data = pd.read_pickle('our_version_norm.pkl')
-size_group = 'large'
+size_group = 'mega'
 if size_group is not None:
   stock_data = stock_data.loc[stock_data.size_grp==size_group]
 
@@ -161,7 +158,7 @@ returns_df = pd.DataFrame({
     for (P, shrink), ret in returns_by_P.items()
 })
 returns_df.index.name = "Date"
-returns_df.to_csv(os.path.join(output_dir, "cumulative_returns_by_P_large.csv"))
+returns_df.to_csv(os.path.join(output_dir, "cumulative_returns_by_P_mega.csv"))
 print("Saved cumulative returns to CSV.")
 
 # Plot cumulative returns
@@ -190,7 +187,7 @@ plt.ylabel("Sharpe Ratio")
 plt.grid(True)
 plt.legend()
 plt.tight_layout()
-plt.savefig(os.path.join(output_dir, "sharpe_vs_P.png"))
+plt.savefig(os.path.join(output_dir, "sharpe_vs_P_mega.png"))
 plt.close()
 print("Saved Sharpe ratio plot.")
 

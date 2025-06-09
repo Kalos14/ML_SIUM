@@ -36,7 +36,7 @@ set_seed(42)
 dataset_path = f"/home/{os.environ['USER']}/our_version_norm.pkl"
 stock_data = pd.read_pickle(dataset_path)
 
-stock_data = stock_data[stock_data["size_grp"] == "small"]
+stock_data = stock_data[stock_data["size_grp"] == "large"]
 
 benchmark_path = f"/home/{os.environ['USER']}/SandP benchmark.csv"
 
@@ -202,7 +202,7 @@ lele = pd.DataFrame(data)
 
 # Step 3: Export to CSV
 
-csv_path = os.path.join(output_dir, "lele_DF_small.csv")
+csv_path = os.path.join(output_dir, "lele_DF_large.csv")
 
 lele.to_csv(csv_path, index=False)
 # In[22]:
@@ -248,7 +248,7 @@ plt.grid(True)
 plt.legend()
 plt.tight_layout()
 
-plt.savefig(os.path.join(output_dir, "myplotSIUM_small.png"))
+plt.savefig(os.path.join(output_dir, "myplotSIUM_large.png"))
 plt.close()
 
 

@@ -13,7 +13,7 @@ import os
 dataset_path = f"/home/{os.environ['USER']}/our_version_norm.pkl"
 stock_data = pd.read_pickle(dataset_path)
 
-size_group = 'mega'
+size_group = 'large'
 if size_group is not None:
   stock_data = stock_data.loc[stock_data.size_grp==size_group]
 
@@ -75,7 +75,7 @@ def ridge_regr(signals: np.ndarray,
     predictions = future_signals @ betas
     return betas, predictions
 
-def hw_efficient_portfolio_oos(raw_factor_returns: pd.DataFrame, P: int, shrinkage_list=[1,10,100,1000,10000,100000,1000000]):
+def hw_efficient_portfolio_oos(raw_factor_returns: pd.DataFrame, P: int, shrinkage_list=[1e-7, 1e-6, 1e-5, 1e-4, 1e-3, 1e-2, 1e-1, 1]):
     oos_returns = []
     dates = []
 
@@ -126,7 +126,7 @@ def produce_random_feature_managed_returns(P, stock_data, signals, num_seeds=10,
 
 
 # Local output directory
-output_dir = "plot_ridge_results_local"
+output_dir = "plot_ridge_results_low_penalties"
 os.makedirs(output_dir, exist_ok=True)
 
 # Define complexity levels
@@ -149,7 +149,7 @@ for P in complexities:
 # Save Sharpe ratios to CSV
 sharpe_df = pd.DataFrame.from_dict(sharpe_by_P, orient='index')  # rows = P, cols = λ
 sharpe_df.index.name = "P"
-sharpe_df.to_csv(os.path.join(output_dir, "sharpe_ratios_by_P_large.csv"))
+sharpe_df.to_csv(os.path.join(output_dir, "sharpe_ratios_by_P_large_low_penalties.csv"))
 print("Saved Sharpe ratios to CSV.")
 
 # Save cumulative returns to CSV
@@ -158,7 +158,7 @@ returns_df = pd.DataFrame({
     for (P, shrink), ret in returns_by_P.items()
 })
 returns_df.index.name = "Date"
-returns_df.to_csv(os.path.join(output_dir, "cumulative_returns_by_P_mega.csv"))
+returns_df.to_csv(os.path.join(output_dir, "cumulative_returns_by_P_large_low_penalties.csv"))
 print("Saved cumulative returns to CSV.")
 
 # Plot cumulative returns

@@ -9,8 +9,6 @@ import os
 
 
 #################################SUPERCOMPUTER
-output_dir = "plot_ridge_results"
-os.makedirs(output_dir, exist_ok=True)
 
 dataset_path = f"/home/{os.environ['USER']}/our_version_norm.pkl"
 stock_data = pd.read_pickle(dataset_path)
@@ -80,7 +78,7 @@ def ridge_regr(signals: np.ndarray,
     predictions = future_signals @ betas
     return betas, predictions
 
-def hw_efficient_portfolio_oos(raw_factor_returns: pd.DataFrame, P: int, shrinkage_list=[0.1,1,10,100,1000,10000]):
+def hw_efficient_portfolio_oos(raw_factor_returns: pd.DataFrame, P: int, shrinkage_list=[1,10,100,1000,10000,100000,1000000]):
     oos_returns = []
     dates = []
 
@@ -128,14 +126,22 @@ def produce_random_feature_managed_returns(P, stock_data, signals, num_seeds=10,
     all_random_feature_managed_returns = pd.concat([all_random_feature_managed_returns, random_feature_managed_returns], axis=1)
   return all_random_feature_managed_returns
 
+
+
+# Local output directory
+output_dir = "plot_ridge_results_local"
+os.makedirs(output_dir, exist_ok=True)
+
+# Define complexity levels
 complexities = [1, 50, 100, 200, 300, 400, 500, 600, 700, 800, 900, 1000]
 sharpe_by_P = {}     # {P: {λ: Sharpe}}
 returns_by_P = {}    # {(P, λ): return_series}
 
 # Loop over complexity levels
 for P in complexities:
+    print(f"Processing P = {P}...")
     hw_random_feature_managed_returns = produce_random_feature_managed_returns(P, stock_data, signals)
-    oos_df, sharpe_dict = hw_efficient_portfolio_oos(hw_random_feature_managed_returns)
+    oos_df, sharpe_dict = hw_efficient_portfolio_oos(P,hw_random_feature_managed_returns)
 
     sharpe_by_P[P] = sharpe_dict
 
@@ -147,6 +153,7 @@ for P in complexities:
 sharpe_df = pd.DataFrame.from_dict(sharpe_by_P, orient='index')  # rows = P, cols = λ
 sharpe_df.index.name = "P"
 sharpe_df.to_csv(os.path.join(output_dir, "sharpe_ratios_by_P.csv"))
+print("Saved Sharpe ratios to CSV.")
 
 # Save cumulative returns to CSV
 returns_df = pd.DataFrame({
@@ -155,6 +162,7 @@ returns_df = pd.DataFrame({
 })
 returns_df.index.name = "Date"
 returns_df.to_csv(os.path.join(output_dir, "cumulative_returns_by_P.csv"))
+print("Saved cumulative returns to CSV.")
 
 # Plot cumulative returns
 plt.figure(figsize=(12, 6))
@@ -169,6 +177,7 @@ plt.legend()
 plt.tight_layout()
 plt.savefig(os.path.join(output_dir, "all_cumrets.png"))
 plt.close()
+print("Saved cumulative returns plot.")
 
 # Plot Sharpe ratios vs P for each shrinkage level
 plt.figure(figsize=(8, 5))
@@ -183,6 +192,111 @@ plt.legend()
 plt.tight_layout()
 plt.savefig(os.path.join(output_dir, "sharpe_vs_P.png"))
 plt.close()
+print("Saved Sharpe ratio plot.")
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+#CLUSTER
+# complexities = [1, 50, 100, 200, 300, 400, 500, 600, 700, 800, 900, 1000]
+# sharpe_by_P = {}     # {P: {λ: Sharpe}}
+# returns_by_P = {}    # {(P, λ): return_series}
+
+# # Loop over complexity levels
+# for P in complexities:
+#     hw_random_feature_managed_returns = produce_random_feature_managed_returns(P, stock_data, signals)
+#     oos_df, sharpe_dict = hw_efficient_portfolio_oos(hw_random_feature_managed_returns)
+
+#     sharpe_by_P[P] = sharpe_dict
+
+#     for shrink, series in oos_df.items():
+#         standardized = series / series.std()
+#         returns_by_P[(P, shrink)] = standardized
+
+# # Save Sharpe ratios to CSV
+# sharpe_df = pd.DataFrame.from_dict(sharpe_by_P, orient='index')  # rows = P, cols = λ
+# sharpe_df.index.name = "P"
+# sharpe_df.to_csv(os.path.join(output_dir, "sharpe_ratios_by_P.csv"))
+
+# # Save cumulative returns to CSV
+# returns_df = pd.DataFrame({
+#     f"P={P}_λ={shrink}": ret.cumsum()
+#     for (P, shrink), ret in returns_by_P.items()
+# })
+# returns_df.index.name = "Date"
+# returns_df.to_csv(os.path.join(output_dir, "cumulative_returns_by_P.csv"))
+
+# # Plot cumulative returns
+# plt.figure(figsize=(12, 6))
+# for label, cumret in returns_df.items():
+#     cumret.plot(label=label)
+
+# plt.title("Cumulative Returns by Complexity P and Shrinkage λ")
+# plt.xlabel("Date")
+# plt.ylabel("Cumulative Standardized Return")
+# plt.grid(True)
+# plt.legend()
+# plt.tight_layout()
+# plt.savefig(os.path.join(output_dir, "all_cumrets.png"))
+# plt.close()
+
+# # Plot Sharpe ratios vs P for each shrinkage level
+# plt.figure(figsize=(8, 5))
+# for shrink in sharpe_df.columns:
+#     plt.plot(sharpe_df.index, sharpe_df[shrink], marker='o', label=f"λ={shrink}")
+
+# plt.title("Sharpe Ratio vs Complexity P")
+# plt.xlabel("Number of Random Features (P)")
+# plt.ylabel("Sharpe Ratio")
+# plt.grid(True)
+# plt.legend()
+# plt.tight_layout()
+# plt.savefig(os.path.join(output_dir, "sharpe_vs_P.png"))
+# plt.close()
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

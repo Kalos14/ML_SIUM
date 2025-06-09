@@ -141,7 +141,7 @@ returns_by_P = {}    # {(P, λ): return_series}
 for P in complexities:
     print(f"Processing P = {P}...")
     hw_random_feature_managed_returns = produce_random_feature_managed_returns(P, stock_data, signals)
-    oos_df, sharpe_dict = hw_efficient_portfolio_oos(P,hw_random_feature_managed_returns)
+    oos_df, sharpe_dict = hw_efficient_portfolio_oos(hw_random_feature_managed_returns,P)
 
     sharpe_by_P[P] = sharpe_dict
 

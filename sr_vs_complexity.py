@@ -37,7 +37,8 @@ def sharpe_ratio(returns):
 def ridge_regr(signals: np.ndarray,
                   labels: np.ndarray,
                   future_signals: np.ndarray,
-                  shrinkage_list: np.ndarray):
+                  shrinkage_list: np.ndarray,
+                  constraint: bool = False):
     """
     Regression is
     beta = (zI + S'S/t)^{-1}S'y/t = S' (zI+SS'/t)^{-1}y/t
@@ -72,6 +73,9 @@ def ridge_regr(signals: np.ndarray,
 
         tmp = eigenvectors.T @ signals # U.T @ S
         betas = tmp.T @ intermed # (S.T @ U) @ [(z_1+\delta)^{-1}, \cdots, (z_K+\delta)^{-1}] * \mu
+    if constraint:
+        # we need to enforce the constraint that betas are non-negative
+        betas = np.maximum(betas, 0)
     predictions = future_signals @ betas
     return betas, predictions
 

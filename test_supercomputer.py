@@ -71,6 +71,10 @@ class FeedForward(nn.Module):
         super().__init__()
         self.fc1 = nn.Linear(D, dF)
         self.fc2 = nn.Linear(dF, D)
+        nn.init.normal_(self.fc1.weight, mean=0.0, std=1.0/dF**0.5)
+        nn.init.zeros_(self.fc1.bias)
+        nn.init.normal_(self.fc2.weight, mean=0.0, std=1.0/D**0.5)
+        nn.init.zeros_(self.fc2.bias)
         self.dropout = nn.Dropout(p=0.1)
 
     def forward(self, X):  # X: [N_t, D]

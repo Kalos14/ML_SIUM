@@ -16,7 +16,6 @@ import torch.optim as optim
 import matplotlib.pyplot as plt
 import matplotlib.dates as mdates
 
-# ── Impostazioni generali ───────────────────────────────────────────────────────
 def set_seed(seed=42):
     random.seed(seed)
     np.random.seed(seed)
@@ -30,8 +29,6 @@ device = "cuda" if torch.cuda.is_available() else "cpu"
 output_dir = Path("CV_folder")
 output_dir.mkdir(exist_ok=True)
 
-# ── Caricamento dati ───────────────────────────────────────────────────────────
-# Modifica questi percorsi se servono
 dataset_path   = f"/home/{os.environ['USER']}/usa_131_per_size_ranks_False.pkl"
 benchmark_path = f"/home/{os.environ['USER']}/SandP benchmark.csv"
 
@@ -47,7 +44,6 @@ SP_benchmark["caldt_period"]  = SP_benchmark["caldt"].dt.to_period("M")
 months_list = stock_data["date"].sort_values().unique()
 columns_to_drop = ["size_grp", "date", "r_1", "id"]
 
-# ── Definizione rete ────────────────────────────────────────────────────────────
 class MultiHeadAttention(nn.Module):
     def __init__(self, D, H):
         super().__init__()
@@ -95,30 +91,26 @@ class NonlinearPortfolioForward(nn.Module):
         w_t = X @ self.lambda_out.squeeze()
         return F.softplus(w_t)
 
-# ── Parametri di training ──────────────────────────────────────────────────────
 window         = 60
 epochs         = 2
 K              = 10
 H              = 1
 dF             = 256
 lr             = 1e-4
-ridge_penalties = np.logspace(-4, 0, 5)  # es. [1, 10, 100, 1000]
+ridge_penalties = np.logspace(-2, 3, 6)  # es. [1, 10, 100, 1000]
 
 first_t = window + 1
 last_t  = len(months_list) - 1
 
-# ── Loop su ridge penalties ────────────────────────────────────────────────────
 plt.figure(figsize=(12, 6))
 for ridge in ridge_penalties:
     cum_rets = []
 
     for t in range(first_t, last_t):
-        # Inizializza modello e optimizer *senza* weight_decay
         D = stock_data.shape[1] - len(columns_to_drop)
         model = NonlinearPortfolioForward(D=D, K=K, H=H, dF=dF).to(device)
         optim_ = optim.Adam(model.parameters(), lr=lr, weight_decay=0.0)
 
-        # Fase di training su rolling window [t-window : t)
         for ep in range(epochs):
             for month in months_list[t-window : t]:
                 md     = stock_data[stock_data["date"] == month]
@@ -134,7 +126,6 @@ for ridge in ridge_penalties:
                 torch.nn.utils.clip_grad_norm_(model.parameters(), 1.0)
                 optim_.step()
 
-        # Fase di test sul periodo t
         with torch.no_grad():
             md      = stock_data[stock_data["date"] == months_list[t]]
             X_t     = torch.tensor(md.drop(columns=columns_to_drop).values,
@@ -152,7 +143,6 @@ for ridge in ridge_penalties:
     plt.plot(months_list[first_t:last_t], cum_rets,
              label=f"ridge={ridge:.0e}, SR ={SR:.0e}")
 
-# Aggiungo S&P 500 per riferimento
 dates_period = pd.Series(months_list[first_t:last_t]).astype("datetime64[ns]").tolist()
 sp = SP_benchmark[SP_benchmark["caldt_period"]
                   .isin(pd.Series(months_list[first_t:last_t]).astype("period[M]"))]
@@ -160,8 +150,7 @@ sp = sp.sort_values("caldt")
 sp_cum = np.cumsum(sp["vwretd"].values)
 plt.plot(sp["caldt"], sp_cum, "--", color="k", label="S&P 500")
 
-# Formattazione grafico
-plt.title("Constrained Portfolio con lr=1e-4, CV su ridge penalties")
+plt.title("Constrained Portfolio with lr=1e-4, GridSearch over ridge penalties")
 plt.xlabel("Time")
 plt.ylabel("Cumulative Return")
 plt.legend()
@@ -170,8 +159,7 @@ plt.gca().xaxis.set_major_locator(mdates.YearLocator(base=10))
 plt.gca().xaxis.set_major_formatter(mdates.DateFormatter("%Y"))
 plt.tight_layout()
 
-# Salvo figura
 plt.savefig(output_dir / "cumsum_all_ridge.png")
 plt.close()
 
-print("Plot salvato in:", output_dir / "cumsum_all_ridge.png")
+print("Plot saved in:", output_dir / "cumsum_all_ridge.png")

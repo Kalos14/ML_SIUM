@@ -13,7 +13,7 @@ import os
 dataset_path = f"/home/{os.environ['USER']}/our_version_norm.pkl"
 stock_data = pd.read_pickle(dataset_path)
 
-size_group = 'micro'
+size_group = 'mega'
 if size_group is not None:
   stock_data = stock_data.loc[stock_data.size_grp==size_group]
 
@@ -75,7 +75,7 @@ def ridge_regr(signals: np.ndarray,
     predictions = future_signals @ betas
     return betas, predictions
 
-def hw_efficient_portfolio_oos(raw_factor_returns: pd.DataFrame, P: int, shrinkage_list=[1, 10, 100, 1000, 10000]):
+def hw_efficient_portfolio_oos(raw_factor_returns: pd.DataFrame, P: int, shrinkage_list=[1, 10, 100, 1000, 10000,1000000]):
     oos_returns = []
     dates = []
 
@@ -149,7 +149,7 @@ for P in complexities:
 # Save Sharpe ratios to CSV
 sharpe_df = pd.DataFrame.from_dict(sharpe_by_P, orient='index')  # rows = P, cols = λ
 sharpe_df.index.name = "P"
-sharpe_df.to_csv(os.path.join(output_dir, "sharpe_ratios_by_P_micro.csv"))
+sharpe_df.to_csv(os.path.join(output_dir, "sharpe_ratios_by_P_mega.csv"))
 print("Saved Sharpe ratios to CSV.")
 
 # Save cumulative returns to CSV
@@ -158,7 +158,7 @@ returns_df = pd.DataFrame({
     for (P, shrink), ret in returns_by_P.items()
 })
 returns_df.index.name = "Date"
-returns_df.to_csv(os.path.join(output_dir, "cumulative_returns_by_P_micro.csv"))
+returns_df.to_csv(os.path.join(output_dir, "cumulative_returns_by_P_mega.csv"))
 print("Saved cumulative returns to CSV.")
 
 # Plot cumulative returns
@@ -172,7 +172,7 @@ plt.ylabel("Cumulative Standardized Return")
 plt.grid(True)
 plt.legend()
 plt.tight_layout()
-plt.savefig(os.path.join(output_dir, "all_cumrets_micro.png"))
+plt.savefig(os.path.join(output_dir, "all_cumrets_mega.png"))
 plt.close()
 print("Saved cumulative returns plot.")
 
@@ -187,7 +187,7 @@ plt.ylabel("Sharpe Ratio")
 plt.grid(True)
 plt.legend()
 plt.tight_layout()
-plt.savefig(os.path.join(output_dir, "sharpe_vs_P_micro.png"))
+plt.savefig(os.path.join(output_dir, "sharpe_vs_P_mega.png"))
 plt.close()
 print("Saved Sharpe ratio plot.")
 

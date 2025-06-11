@@ -52,11 +52,6 @@ SP_benchmark["caldt"] = pd.to_datetime(SP_benchmark["caldt"])
 
 # In[16]:
 
-def factor_ret(signals, next_period_ret):
-    """"
-    Inputs are signals_t and r_t+1, hence this needs to be in a loop for each month
-    """
-    return (signals.values*next_period_ret.values).sum()/signals.values.sum()
 
 class MultiHeadAttention(nn.Module):
     def __init__(self, D, H):

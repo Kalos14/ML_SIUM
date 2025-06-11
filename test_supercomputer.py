@@ -53,8 +53,8 @@ class MultiHeadAttention(nn.Module):
     def __init__(self, D, H):
         super().__init__()
         self.H = H
-        self.W = nn.ParameterList([nn.Parameter(torch.randn(D, D)/100) for _ in range(H)])
-        self.V = nn.ParameterList([nn.Parameter(torch.randn(D, D)/100) for _ in range(H)])
+        self.W = nn.ParameterList([nn.Parameter(torch.randn(D, D)/D) for _ in range(H)])
+        self.V = nn.ParameterList([nn.Parameter(torch.randn(D, D)/D) for _ in range(H)])
 
     def forward(self, X):  # X: [N_t, D]
         heads = []

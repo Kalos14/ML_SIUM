@@ -103,7 +103,8 @@ class NonlinearPortfolioForward(nn.Module):
         self.bias = nn.Parameter(torch.zeros(1))
 
     def forward(self, X):
-        X = self.blocks(X)
+        for block in self.blocks:
+            X = block(X)
         w_t = X @ self.lambda_out.squeeze()
         leverage = w_t.abs().sum() + 1e-6  # avoid div by zero
         scaling = torch.clamp(1.5 / leverage, max=1.0)

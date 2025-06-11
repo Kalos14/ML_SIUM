@@ -48,7 +48,6 @@ SP_benchmark["caldt"] = pd.to_datetime(SP_benchmark["caldt"])
 
 
 # ## defining transformer structure
-# 
 
 # In[16]:
 
@@ -105,10 +104,10 @@ class NonlinearPortfolioForward(nn.Module):
 
     def forward(self, X):
         X = self.blocks(X)
-        w_raw = self.out(X).flatten()
-        leverage = w_raw.abs().sum() + 1e-6  # avoid div by zero
+        w_t = X @ self.lambda_out.squeeze()
+        leverage = w_t.abs().sum() + 1e-6  # avoid div by zero
         scaling = torch.clamp(1.5 / leverage, max=1.0)
-        w = w_raw * scaling
+        w = w_t * scaling
         return w
 # ## Training loop -------
 

@@ -100,7 +100,7 @@ class NonlinearPortfolioForward(nn.Module):
     def __init__(self, D, K, H=1, dF=256):
         super().__init__()
         self.blocks = nn.ModuleList([TransformerBlock(D, H, dF) for _ in range(K)])
-        self.lambda_out = nn.Parameter(torch.randn(D, 1)/1000)  # final projection
+        self.lambda_out = nn.Parameter(torch.randn(D, 1)/np.sqrt(D))  # final projection
 
     def forward(self, X):  # X: [N_t, D]
         for block in self.blocks:

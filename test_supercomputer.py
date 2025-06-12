@@ -36,7 +36,7 @@ set_seed(42)
 dataset_path = f"/home/{os.environ['USER']}/our_version_norm.pkl"
 stock_data = pd.read_pickle(dataset_path)
 
-stock_data = stock_data[stock_data["size_grp"] == "small"]
+stock_data = stock_data[stock_data["size_grp"] == "mega"]
 
 benchmark_path = f"/home/{os.environ['USER']}/SandP benchmark.csv"
 
@@ -53,8 +53,8 @@ class MultiHeadAttention(nn.Module):
     def __init__(self, D, H):
         super().__init__()
         self.H = H
-        self.W = nn.ParameterList([nn.Parameter(torch.randn(D, D)/D) for _ in range(H)])
-        self.V = nn.ParameterList([nn.Parameter(torch.randn(D, D)/D) for _ in range(H)])
+        self.W = nn.ParameterList([nn.Parameter(torch.randn(D, D)/100) for _ in range(H)])
+        self.V = nn.ParameterList([nn.Parameter(torch.randn(D, D)/100) for _ in range(H)])
 
     def forward(self, X):  # X: [N_t, D]
         heads = []
@@ -71,10 +71,6 @@ class FeedForward(nn.Module):
         super().__init__()
         self.fc1 = nn.Linear(D, dF)
         self.fc2 = nn.Linear(dF, D)
-        nn.init.normal_(self.fc1.weight, mean=0.0, std=1.0/dF**0.5)
-        nn.init.zeros_(self.fc1.bias)
-        nn.init.normal_(self.fc2.weight, mean=0.0, std=1.0/D**0.5)
-        nn.init.zeros_(self.fc2.bias)
         self.dropout = nn.Dropout(p=0.1)
 
     def forward(self, X):  # X: [N_t, D]
@@ -100,15 +96,14 @@ class NonlinearPortfolioForward(nn.Module):
     def __init__(self, D, K, H=1, dF=256):
         super().__init__()
         self.blocks = nn.ModuleList([TransformerBlock(D, H, dF) for _ in range(K)])
-        self.lambda_out = nn.Parameter(torch.randn(D, 1)/np.sqrt(D))  # final projection
+        self.lambda_out = nn.Parameter(torch.randn(D, 1)/1000)  # final projection
+        self.bias = nn.Parameter(torch.zeros(1))
 
-    def forward(self, X):  # X: [N_t, D]
+    def forward(self, X):
         for block in self.blocks:
-            X = block(X)  # propagate through K blocks
-        w_t = X @ self.lambda_out# [N_t, 1]
-
-        return w_t.squeeze()       # [N_t]
-
+            X = block(X)
+        w_t = X @ self.lambda_out.squeeze()
+        return w_t
 # ## Training loop -------
 
 # In[7]:
@@ -206,7 +201,7 @@ lele = pd.DataFrame(data)
 
 # Step 3: Export to CSV
 
-csv_path = os.path.join(output_dir, "lele_DF_small.csv")
+csv_path = os.path.join(output_dir, "lele_DF_mega.csv")
 
 lele.to_csv(csv_path, index=False)
 # In[22]:
@@ -252,7 +247,7 @@ plt.grid(True)
 plt.legend()
 plt.tight_layout()
 
-plt.savefig(os.path.join(output_dir, "myplotSIUM_small.png"))
+plt.savefig(os.path.join(output_dir, "myplotSIUM_mega.png"))
 plt.close()
 
 

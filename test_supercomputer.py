@@ -16,7 +16,7 @@ import random
 import datetime as dt
 import os
 ### SUPERCOMPUTER ###
-output_dir = "project_results"
+output_dir = "project_results_mega"
 os.makedirs(output_dir, exist_ok=True)
 
 

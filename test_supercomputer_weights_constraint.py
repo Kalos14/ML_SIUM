@@ -160,7 +160,7 @@ first_t = 61
 last_T =  len(months_list)-2 #first_t + 10
 for t in range(first_t, last_T):
     model = NonlinearPortfolioForward(D=D, K=K, H=H, dF=dF).to(device)
-    optimizer = optim.Adam(model.parameters(), lr=lr, weight_decay=1e-5)
+    optimizer = optim.Adam(model.parameters(), lr=lr)
 
     losses = []
     returns = []

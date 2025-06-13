@@ -245,7 +245,7 @@ MEGA_lele = pd.DataFrame(data)
 
 # Step 3: Export to CSV
 
-csv_path = output_dir / "MEGA_short_constrain.csv"
+csv_path = output_dir / "No_wd_short_constrain.csv"
 MEGA_lele.to_csv(csv_path, index=False)
 
 # torch.save(run_artifacts, output_dir / "artifacts_run.pt")
@@ -293,13 +293,13 @@ plt.plot(dates_to_save, SP_cum_return, label="S&P 500", linestyle="--")
 plt.gca().xaxis.set_major_locator(mdates.YearLocator(base=10))
 plt.gca().xaxis.set_major_formatter(mdates.DateFormatter('%Y'))
 
-plt.title(f"Cum Ret constrained: epochs = 20, H = {H} , K = {K}, z ={ridge_penalty} SR = {sharpe_ratio:.2f}")
+plt.title(f"Cum Ret constrained: epochs = 20, z ={ridge_penalty}, SR = {sharpe_ratio:.2f}")
 plt.xlabel("Time")
 plt.ylabel("Cumulative Return")
 plt.grid(True)
 plt.legend()
 plt.tight_layout()
-plt.savefig(os.path.join(output_dir, "MEGA.constrained_plot.png"))
+plt.savefig(os.path.join(output_dir, "No_wd.constrained_plot.png"))
 plt.close()
 
 

@@ -104,7 +104,7 @@ last_t  = len(months_list) - 1
 
 plt.figure(figsize=(12, 6))
 for ridge in ridge_penalties:
-    cum_rets = []
+    rets_list = []
 
     for t in range(first_t, last_t):
         D = stock_data.shape[1] - len(columns_to_drop)
@@ -134,12 +134,10 @@ for ridge in ridge_penalties:
                                    dtype=torch.float32, device=device)
             w_next  = model(X_t)
             ret_t   = (w_next @ R_next).item()
-            cum_rets.append(ret_t)
+            rets_list.append(ret_t)
             
-
-    cum_rets = np.cumsum(cum_rets)
-    SR = cum_rets.mean()/cum_rets.std() *np.sqrt(12)
-    # Plotto la curva cumulata per questa lambda
+    SR = rets_list.mean()/rets_list.std() *np.sqrt(12)
+    cum_rets = np.cumsum(rets_list)
     plt.plot(months_list[first_t:last_t], cum_rets,
              label=f"ridge={ridge:.0e}, SR ={SR:.0e}")
 

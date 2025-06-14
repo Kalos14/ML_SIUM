@@ -135,7 +135,7 @@ K = 10
 D = stock_data.shape[1] - len(columns_to_drop_in_x)
 H = 1
 dF = 256
-ridge_penalty = 0.01
+ridge_penalty = 0.0001
 lr = 1e-4
 device = "cuda" if torch.cuda.is_available() else "cpu"
 print(f"device={device}")
@@ -299,7 +299,7 @@ plt.ylabel("Cumulative Return")
 plt.grid(True)
 plt.legend()
 plt.tight_layout()
-plt.savefig(os.path.join(output_dir, "No_wd.constrained_plot.png"))
+plt.savefig(os.path.join(output_dir, "smallz.constrained_plot.png"))
 plt.close()
 
 

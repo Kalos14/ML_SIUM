@@ -42,7 +42,7 @@ portfolio. Test improvement of the strategy in function of increasing number of 
 - benchmark_ridge.py : again applies the same model as before, but instead of increasing complexity
 via random features, focus on few "known" significant factors
 - functions_ridge.py : includes the functions that indeed define our model
-- /pictures : stores our oup
+- /pictures : stores our output
 
 ### Transformer
 
